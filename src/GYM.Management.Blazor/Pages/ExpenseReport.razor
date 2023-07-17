@@ -1,0 +1,89 @@
+﻿@page "/expensereport"
+@using GYM.Management.Expenses;
+@using System.Globalization;
+@inject IExpenseService _expenseService
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+        <FieldLabel>Başlangıç Tarihi</FieldLabel>
+        <InputDate @bind-Value="expenseReport.StartDate" />
+         </Field>
+    </Column>
+
+     <Column ColumnSize="ColumnSize.Is6">
+         <Field>
+            <FieldLabel>Bitiş Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.EndDate" />
+         </Field>
+       
+    </Column>
+    <Field>
+        <Button Color="Color.Primary" Clicked="GetReports">Filtrele</Button>
+    </Field>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.Is4">
+        <Card Background="Background.Primary" WhiteText>
+    <CardBody>
+        <CardTitle Size="3">
+            Toplam Harcama
+        </CardTitle>
+        <CardText>
+                    @expenseSum.ToString("N2") TL
+        </CardText>
+    </CardBody>
+</Card>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is4">
+        <Card Background="Background.Primary" WhiteText>
+            <CardBody>
+                <CardTitle Size="3">
+                    Harcama Sayısı
+                </CardTitle>
+                <CardText>
+                    @expenseCount adet
+                </CardText>
+            </CardBody>
+        </Card>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is4">
+        <Card Background="Background.Primary" WhiteText>
+            <CardBody>
+                <CardTitle Size="3">
+                    Maaş Harcaması
+                </CardTitle>
+                <CardText>
+                    @salarySum.ToString("N2") TL
+                </CardText>
+            </CardBody>
+        </Card>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is4">
+        <Card Background="Background.Primary" WhiteText>
+            <CardBody>
+                <CardTitle Size="3">
+                    Diğer Harcama
+                </CardTitle>
+                <CardText>
+                    @spendingSum.ToString("N2") TL
+                </CardText>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+@code {
+    ExpenseReportInputDto expenseReport = new ExpenseReportInputDto{StartDate = DateTime.Today, EndDate =DateTime.Today};
+    int expenseCount = 0;
+    decimal expenseSum = 0;
+    decimal salarySum = 0;
+    decimal spendingSum = 0;
+    private async Task GetReports()
+    {
+        var result = await _expenseService.GetReports(expenseReport);
+        expenseCount = result.Count;
+        expenseSum = result.Sum(o => o.Amount);
+        salarySum = result.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
+        spendingSum = result.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
+    } 
+}

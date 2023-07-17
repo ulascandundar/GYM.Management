@@ -1,0 +1,22 @@
+{
+  "culture": "tr",
+  "texts": {
+    "Menu:Home": "Ana sayfa",
+    "Welcome": "Hoşgeldiniz",
+    "LongWelcomeMessage": "Uygulamaya hoşgeldiniz. Bu, ABP framework'ü üzerine bina edilmiş bir başlangıç projesidir. Daha fazla bilgi için abp.io adresini ziyaret edebilirsiniz.",
+    "Permission:Exercise": "Egzersiz Yönetimi",
+    "Permission:Exercise.Create": "Egzersiz oluşturma",
+    "Permission:Exercise.Edit": "Egzersiz Güncelleme",
+    "Permission:Exercise.Delete": "Egzersiz Silme",
+    "Permission:Category": "Kategori Yönetimi",
+    "Permission:Category.Create": "Kategori oluşturma",
+    "Permission:Category.Edit": "Kategori Güncelleme",
+    "Permission:Category.Delete": "Kategori Silme",
+    "Permission:Trainer": "Antrenör yönetimi",
+    "Permission:Trainer.Create": "Antrenör oluşturma",
+    "Permission:Trainer.Edit": "Antrenör güncelleme",
+    "Permission:Trainer.Delete": "Antrenör silme",
+    "Enum:ExpenseType.0": "Standart Harcama",
+    "Enum:ExpenseType.1": "Maaş Ödeme"
+  }
+}

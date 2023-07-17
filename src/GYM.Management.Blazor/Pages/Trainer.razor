@@ -1,0 +1,242 @@
+﻿@page "/trainer"
+@attribute [Authorize(ManagementPermissions.Trainer.Default)]
+@using GYM.Management.Permissions
+@using GYM.Management.Trainers;
+@using Volo.Abp.Application.Dtos
+@using GYM.Management.Exercises
+@using GYM.Management.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<ManagementResource> L
+@inherits AbpCrudPageBase<ITrainerService, TrainerDto, Guid, PagedAndSortedResultRequestDto, TrainerCreateDto>
+@inject ITrainerService _trainerService
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Antrenörler</h2>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="OpenCreateModalAsync">
+                    Yeni Antrenör
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="TrainerDto"
+                  Data="Entities"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="TrainerDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="TrainerDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="TrainerDto"
+                                          Text="Güncelle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                            <EntityAction TItem="TrainerDto"
+                                          Text="Sil"
+                                          Clicked="() => DeleteByIdAsync(context.Id)"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                                          @if (IsPaymentDue(context.lastSalaryDate))
+                            {
+                                <EntityAction TItem="TrainerDto"
+                                          Text="Maaş Öde"
+                                          Clicked="() => Pay(context.Id)" />
+                            }
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.Name)"
+                                Caption="İsim"></DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.Salary)"
+                                Caption="Maaş"></DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.lastSalaryDate)"
+                                Caption="Son Ödenen Maaş">
+                    <DisplayTemplate>
+                        @context.lastSalaryDate.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.BirdthDate)"
+                                Caption="Doğum Tarihi">
+                    <DisplayTemplate>
+                        @context.BirdthDate.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.Telephone)"
+                                Caption="Telefon"></DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+<Modal @ref="@CreateModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>Yeni Antrenör</ModalTitle>
+                <CloseButton Clicked="CloseCreateModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@CreateValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>İsim</FieldLabel>
+                            <TextEdit @bind-Text="@NewEntity.Name">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Telefon</FieldLabel>
+                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>Maaş</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="NewEntity.Salary" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>Doğum Tarihi</FieldLabel>
+                        <DatePicker TValue="DateTime" @bind-Date="NewEntity.BirdthDate" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="CreateEntityAsync">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+<Modal @ref="@EditModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>@EditingEntity.Name</ModalTitle>
+                <CloseButton Clicked="CloseEditModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>İsim</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Name">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                   
+                    <Field>
+                        <FieldLabel>Doğum Tarihi</FieldLabel>
+                        <DatePicker TValue="DateTime" @bind-Date="EditingEntity.BirdthDate" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>Maaş</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="EditingEntity.Salary" />
+                    </Field>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Telefon</FieldLabel>
+                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" @bind-Text="@EditingEntity.Telephone">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="UpdateEntityAsync">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@code {
+    public Trainer()
+    {
+        CreatePolicyName = ManagementPermissions.Trainer.Create;
+        UpdatePolicyName = ManagementPermissions.Trainer.Edit;
+        DeletePolicyName = ManagementPermissions.Trainer.Delete;
+    }
+
+    public static bool IsPaymentDue(DateTime salaryDate)
+    {
+        if (salaryDate == null || salaryDate == DateTime.MinValue)
+        {
+            return true;
+        }
+        DateTime currentDate = DateTime.UtcNow;
+        int lastPaymentMonth = salaryDate.Month;
+        int lastPaymentYear = salaryDate.Year;
+
+        int currentMonth = currentDate.Month;
+        int currentYear = currentDate.Year;
+
+        if (lastPaymentYear < currentYear || (lastPaymentYear == currentYear && lastPaymentMonth < currentMonth))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private async Task Pay(Guid id)
+    {
+        await _trainerService.PaySalary(id);
+        await GetEntitiesAsync();
+        await Notify.Success("Maaş Ödendi");
+    }
+
+    private async Task DeleteByIdAsync(Guid id)
+    {
+        try
+        {
+            await CheckDeletePolicyAsync();
+            await OnDeletingEntityAsync();
+            await _trainerService.DeleteAsyncById(id);
+            await OnDeletedEntityAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+}

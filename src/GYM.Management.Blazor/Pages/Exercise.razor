@@ -1,0 +1,291 @@
+﻿@page "/Exercise"
+@attribute [Authorize(ManagementPermissions.Exercise.Default)]
+@using GYM.Management.Permissions
+@using Microsoft.AspNetCore.Authorization
+@using Volo.Abp.Application.Dtos
+@using GYM.Management.Exercises
+@using GYM.Management.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<ManagementResource> L
+@inherits AbpCrudPageBase<IExerciseService, ExerciseDto, Guid, PagedAndSortedResultRequestDto, ExercisCreateDto>
+@inject IExerciseService _exerciseService
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Egzersizler</h2>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="OpenCreateModalAsync">
+                    Yeni Egzersiz
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <div id="UserFilterSection" class="row mt-3">
+            <Column ColumnSize="ColumnSize.Is12">
+                <Field>
+                    <FieldLabel>İsim</FieldLabel>
+                    <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Name" />
+                </Field>
+            </Column>
+        </div>
+        <DataGrid TItem="ExerciseDto"
+                  Data="ExerciseList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="ExerciseDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="ExerciseDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="ExerciseDto"
+                                          Text="Güncelle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                            <EntityAction TItem="ExerciseDto"
+                                          Text="Sil"
+                                          Clicked="() => DeleteData(context)"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+                <DataGridColumn TItem="ExerciseDto"
+                                Field="@nameof(ExerciseDto.Name)"
+                                Caption="İsim"></DataGridColumn>
+                <DataGridColumn TItem="ExerciseDto"
+                                Field="@nameof(ExerciseDto.Description)"
+                                Caption="Açıklama"></DataGridColumn>
+                <DataGridColumn TItem="ExerciseDto"
+                                Field="@nameof(ExerciseDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+<Modal @ref="@CreateModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>Yeni Egzersiz</ModalTitle>
+                <CloseButton Clicked="CloseCreateModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@CreateValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>İsim</FieldLabel>
+                            <TextEdit @bind-Text="@NewEntity.Name">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Açıklama</FieldLabel>
+                            <TextEdit @bind-Text="@NewEntity.Description">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="AddData">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+<Modal @ref="@EditModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>@EditingEntity.Name</ModalTitle>
+                <CloseButton Clicked="CloseEditModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>İsim</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Name">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Açıklama</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Description">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="EditData">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+@code {
+    public Exercise()
+    {
+        CreatePolicyName = ManagementPermissions.Exercise.Create;
+        UpdatePolicyName = ManagementPermissions.Exercise.Edit;
+        DeletePolicyName = ManagementPermissions.Exercise.Delete;
+    }
+    private IReadOnlyList<ExerciseDto> ExerciseList { get; set; } = new List<ExerciseDto>();
+    private GetExerciseListInput Filter { get; set; } = new GetExerciseListInput();
+    private int CurrentPage { get; set; } 
+    private string CurrentSorting { get; set; }
+    private int TotalCount { get; set; }
+    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+    //protected Modal CreateModal;
+    //protected Modal EditModal;
+    protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ExerciseDto> e)
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        CurrentSorting = e.Columns
+            .Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.SortField + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+        CurrentPage = e.Page;
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        var result = await _exerciseService.GetListAsync(Filter);
+        ExerciseList = result.Items;
+        TotalCount = (int)result.TotalCount;
+        //await GetEntitiesAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Filter.MaxResultCount = PageSize;
+            Filter.SkipCount = (CurrentPage-1) * PageSize;
+            Filter.Sorting = CurrentSorting;
+            var result = await _exerciseService.GetListAsync(Filter);
+            ExerciseList = result.Items;
+            TotalCount = (int)result.TotalCount;
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount =0;
+        Filter.Sorting = CurrentSorting;
+        var result = await _exerciseService.GetListAsync(Filter);
+        ExerciseList = result.Items;
+        TotalCount = (int)result.TotalCount;
+    }
+    private async Task AddData()
+    {
+        try
+        {
+            var validate = true;
+            if (CreateValidationsRef != null)
+            {
+                validate = await CreateValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                await _exerciseService.AnyName(NewEntity.Name);
+                var data = await _exerciseService.CreateAsync(NewEntity);
+                 
+                var result = await _exerciseService.GetListAsync(Filter);
+                ExerciseList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await InvokeAsync(CreateModal.Hide);
+                await Notify.Success("Egzersiz eklendi");
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+
+
+    }
+    private async Task EditData()
+    {
+        try
+        {
+            var validate = true;
+            if (EditValidationsRef != null)
+            {
+                validate = await EditValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                var data = await _exerciseService.UpdateAsync(EditingEntityId,EditingEntity);
+                var result = await _exerciseService.GetListAsync(Filter);
+                ExerciseList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await InvokeAsync(EditModal.Hide);
+                await Notify.Success("Egzersiz güncellendi");
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    private async Task DeleteData(ExerciseDto dto)
+    {
+        try
+        {
+            await _exerciseService.DeleteAsync(dto.Id);
+            var result = await _exerciseService.GetListAsync(Filter);
+            ExerciseList = result.Items;
+            TotalCount = (int)result.TotalCount;
+            await Notify.Success("Egzersiz silindi");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    //private async Task OnKeyPressed(KeyboardEventArgs e)
+    //{
+    //    if (e.Code is "Enter" or "NumpadEnter")
+    //    {
+    //        Filter
+    //        await GetUsersAsync();
+    //    }
+    //}
+}

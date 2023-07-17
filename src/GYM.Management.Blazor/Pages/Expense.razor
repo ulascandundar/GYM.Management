@@ -1,0 +1,293 @@
+﻿@page "/expense"
+@using GYM.Management.Expenses;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@using GYM.Management.Localization
+@inject IStringLocalizer<ManagementResource> L
+@inherits AbpCrudPageBase<IExpenseService, ExpenseDto, Guid, PagedAndSortedResultRequestDto, ExpenseCreateDto>
+@inject IExpenseService _expenseService
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Giderler</h2>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="OpenCreateModalAsync">
+                    Yeni Gider
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <div id="UserFilterSection" class="row mt-3">
+            <Column ColumnSize="ColumnSize.Is12">
+                <Field>
+                    <FieldLabel>Açıklama Filtresi</FieldLabel>
+                    <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Description" />
+                </Field>
+            </Column>
+        </div>
+        <DataGrid TItem="ExpenseDto"
+                  Data="ExpenseList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="ExpenseDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="ExpenseDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="ExpenseDto"
+                                          Text="Güncelle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                            <EntityAction TItem="ExpenseDto"
+                                          Text="Sil"
+                                          Clicked="() => DeleteData(context)"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.ExpenseType)"
+                                Caption="Gider Tipi">
+                    <DisplayTemplate>
+                        @L[$"Enum:ExpenseType.{(int)context.ExpenseType}"]
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.Amount)"
+                                Caption="Tutar">
+                </DataGridColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.Description)"
+                                Caption="Açıklama"></DataGridColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.Date)"
+                                Caption="Harcama Tarihi">
+                    <DisplayTemplate>
+                        @context.Date.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="ExpenseDto"
+                                Field="@nameof(ExpenseDto.TrainerName)"
+                                Caption="Çalışan"></DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+<Modal @ref="@CreateModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>Yeni Gider</ModalTitle>
+                <CloseButton Clicked="CloseCreateModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@CreateValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Açıklama</FieldLabel>
+                            <TextEdit @bind-Text="@NewEntity.Description">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    
+                    <Field>
+                        <FieldLabel>Tutar</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="NewEntity.Amount" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>Gider Tarihi</FieldLabel>
+                        <DatePicker TValue="DateTime" @bind-Date="NewEntity.Date" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="AddData">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+@*<Modal @ref="@EditModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <Form>
+            <ModalHeader>
+                <ModalTitle>@EditingEntity.Name</ModalTitle>
+                <CloseButton Clicked="CloseEditModalAsync"/>
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Validation>
+                        <Field>
+                            <FieldLabel>İsim</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Name">
+                                <Feedback>
+                                    <ValidationError/>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Açıklama</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Description">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditModalAsync">İptal</Button>
+                <Button Color="Color.Primary"
+                        Type="@ButtonType.Submit"
+                        PreventDefaultOnSubmit="true"
+                        Clicked="EditData">Kaydet</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>*@
+@code {
+
+
+    private IReadOnlyList<ExpenseDto> ExpenseList { get; set; } = new List<ExpenseDto>();
+    private GetExpenseListInput Filter { get; set; } = new GetExpenseListInput();
+    private int CurrentPage { get; set; }
+    private string CurrentSorting { get; set; }
+    private int TotalCount { get; set; }
+    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+
+    protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ExpenseDto> e)
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        CurrentSorting = e.Columns
+            .Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.SortField + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+        CurrentPage = e.Page;
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        var result = await _expenseService.GetListAsync(Filter);
+        ExpenseList = result.Items;
+        TotalCount = (int)result.TotalCount;
+        //await GetEntitiesAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Filter.MaxResultCount = PageSize;
+            Filter.SkipCount = (CurrentPage - 1) * PageSize;
+            Filter.Sorting = CurrentSorting;
+            var result = await _expenseService.GetListAsync(Filter);
+            ExpenseList = result.Items;
+            TotalCount = (int)result.TotalCount;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = 0;
+        Filter.Sorting = CurrentSorting;
+        var result = await _expenseService.GetListAsync(Filter);
+        ExpenseList = result.Items;
+        TotalCount = (int)result.TotalCount;
+    }
+
+    private async Task AddData()
+    {
+        try
+        {
+            var validate = true;
+            if (CreateValidationsRef != null)
+            {
+                validate = await CreateValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                //await _.AnyName(NewEntity.Name);
+                var data = await _expenseService.CreateAsync(NewEntity);
+
+                var result = await _expenseService.GetListAsync(Filter);
+                ExpenseList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await InvokeAsync(CreateModal.Hide);
+                await Notify.Success("Gider eklendi");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    private async Task EditData()
+    {
+        try
+        {
+            var validate = true;
+            if (EditValidationsRef != null)
+            {
+                validate = await EditValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                var data = await _expenseService.UpdateAsync(EditingEntityId, EditingEntity);
+                var result = await _expenseService.GetListAsync(Filter);
+                ExpenseList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await InvokeAsync(EditModal.Hide);
+                await Notify.Success("Gider güncellendi");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteData(ExpenseDto dto)
+    {
+        try
+        {
+            await _expenseService.DeleteAsync(dto.Id);
+            var result = await _expenseService.GetListAsync(Filter);
+            ExpenseList = result.Items;
+            TotalCount = (int)result.TotalCount;
+            await Notify.Success("Gider silindi");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+}

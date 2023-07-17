@@ -1,0 +1,22 @@
+﻿@using GYM.Management.Categories;
+@inject ICategoryService CategoryService
+
+
+
+<Card>
+	<CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Kategoriler</h2>
+            </Column>
+        </Row>
+	</CardHeader>
+</Card>
+@code {
+    List<CategoryDto> categoryDtos = new List<CategoryDto>();
+    protected override async Task OnInitializedAsync()
+    {
+        var result  = await CategoryService.GetListAsync(new Volo.Abp.Application.Dtos.PagedAndSortedResultRequestDto { MaxResultCount = 999 });
+    }
+
+}
