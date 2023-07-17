@@ -1,7 +1,7 @@
 ﻿@page "/Member"
-
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
+@using GYM.Management.Products;
 @using GYM.Management.Trainers;
 @using Microsoft.AspNetCore.Authorization
 @using Volo.Abp.Application.Dtos
@@ -11,6 +11,7 @@
 @inherits AbpCrudPageBase<IMemberService, MemberDto, Guid, PagedAndSortedResultRequestDto, MemberCreateDto>
 @inject IMemberService _memberService
 @inject ITrainerService _trainerService
+@inject IProductService _productService
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
@@ -51,15 +52,15 @@
                                           Text="Sil"
                                           Clicked="() => DeleteData(context)"
                                           ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Ürün Tüketimi Ekle"
+                                          Clicked="() => OpenProductModel(context.Id)" />
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
                 <DataGridColumn TItem="MemberDto"
                                 Field="@nameof(MemberDto.Name)"
                                 Caption="İsim"></DataGridColumn>
-                <DataGridColumn TItem="MemberDto"
-                                Field="@nameof(MemberDto.Surname)"
-                                Caption="Soy İsim"></DataGridColumn>
                 <DataGridColumn TItem="MemberDto"
                                 Field="@nameof(MemberDto.CreationTime)"
                                 Caption="Eklenme Tarihi">
@@ -102,16 +103,7 @@
                             </TextEdit>
                         </Field>
                     </Validation>
-                    <Validation>
-                        <Field>
-                            <FieldLabel>Soy İsim</FieldLabel>
-                            <TextEdit @bind-Text="@NewEntity.Surname">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
+                    
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
@@ -170,16 +162,7 @@
                             </TextEdit>
                         </Field>
                     </Validation>
-                    <Validation>
-                        <Field>
-                            <FieldLabel>Soyisim</FieldLabel>
-                            <TextEdit @bind-Text="@EditingEntity.Surname">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
+                   
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
@@ -218,15 +201,74 @@
         </Form>
     </ModalContent>
 </Modal>
+
+
+
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Fullscreen">
+        <ModalHeader>
+            <ModalTitle>Kategoriye dahil egzersizler</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Row>
+
+                <Column ColumnSize="ColumnSize.Is12">
+                    <Table FixedHeader FixedHeaderTableHeight="300px">
+                        <TableHeader>
+
+                            <TableRow>
+                                <TableHeaderCell>Ürün İsmi</TableHeaderCell>
+                                <TableHeaderCell>Fiyat</TableHeaderCell>
+                                <TableHeaderCell>Miktar</TableHeaderCell>
+                                <TableHeaderCell>Toplam Tutar</TableHeaderCell>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            @if (ProductList != null)
+                            {
+                                @foreach (var item in ProductList)
+                                {
+                                    Func<decimal> calculateTotalPrice = () => item.Quantity * item.BuyPrice;
+                                    <TableRow>
+                                            <TableRowCell>@item.Name</TableRowCell>
+                                            <TableRowCell>@item.BuyPrice</TableRowCell>
+                                            <TableRowCell>
+                                            <Field>
+                                           <NumericEdit TValue="int" @bind-Value="item.Quantity" />
+                                            </Field>                                            
+                                            </TableRowCell>
+                                            <TableRowCell>
+                                            @calculateTotalPrice()
+                                            </TableRowCell>
+                                    </TableRow>
+                                }
+                            }
+
+                        </TableBody>
+                    </Table>
+                </Column>
+
+            </Row>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
     private IReadOnlyList<TrainerDto> TrainerList { get; set; } = new List<TrainerDto>();
+    private IReadOnlyList<ProductDto> ProductList { get; set; } = new List<ProductDto>();
     private GetMemberListInput Filter { get; set; } = new GetMemberListInput();
     private int CurrentPage { get; set; }
     private string CurrentSorting { get; set; }
     private int TotalCount { get; set; }
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
-
+    private Guid SelectedId;
+    private Modal modalRef;
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -279,6 +321,19 @@
             MemberList = result.Items;
             TotalCount = (int)result.TotalCount;
             await Notify.Success("Üye silindi");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    private async Task OpenProductModel(Guid id)
+    {
+        try
+        {
+            SelectedId = id;
+            ProductList = (await _productService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 999 })).Items;
+            await modalRef.Show();
         }
         catch (Exception ex)
         {
