@@ -12,7 +12,6 @@ namespace GYM.Management.Members
     public class Member : AuditedAggregateRoot<Guid>, ISoftDelete
     {
         public string Name { get; set; }
-        public string Surname { get; set; }
         public DateTime BirdthDate { get; set; }
         public string Telephone { get; set; }
         public bool IsDeleted { get; set; }

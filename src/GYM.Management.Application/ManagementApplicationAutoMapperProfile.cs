@@ -2,6 +2,7 @@
 using GYM.Management.Categories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
+using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
 using GYM.Management.Trainers;
@@ -39,5 +40,9 @@ public class ManagementApplicationAutoMapperProfile : Profile
         CreateMap<Expense, ExpenseDto>().ReverseMap();
         CreateMap<Expense, ExpenseCreateDto>().ReverseMap();
         CreateMap<ExpenseDto, ExpenseCreateDto>().ReverseMap();
-    }
+
+		CreateMap<MemberOrder, MemberOrderDto>().ReverseMap();
+		CreateMap<MemberOrder, MemberOrderCreateDto>().ReverseMap();
+		CreateMap<MemberOrderDto, MemberOrderCreateDto>().ReverseMap();
+	}
 }
