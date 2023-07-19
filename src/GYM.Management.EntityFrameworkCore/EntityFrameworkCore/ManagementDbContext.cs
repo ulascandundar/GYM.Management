@@ -2,6 +2,8 @@
 using GYM.Management.ExerciseCategories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
+using GYM.Management.Gains;
+using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
 using GYM.Management.Trainers;
@@ -66,6 +68,8 @@ public class ManagementDbContext :
     public DbSet<Member> Member { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Expense> Expenses { get; set; }
+    public DbSet<MemberOrder> MemberOrders { get; set; }
+    public DbSet<Gain> Gains { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {

@@ -10,8 +10,8 @@ using GYM.Management.Products;
 
 namespace GYM.Management.MemberOrders
 {
-	public class MemberOrder : AuditedAggregateRoot<Guid>, ISoftDelete
-	{
+	public class MemberOrder : FullAuditedAggregateRoot<Guid>
+    {
 		public int Quantity { get; set; }
 		public decimal TotalPrice { get; set; }
 		public int AppointmentStock { get; set; }
@@ -20,6 +20,5 @@ namespace GYM.Management.MemberOrders
 		public Guid? ProductId { get; set; }
 		public virtual Member Member { get; set; }
 		public virtual Product Product { get; set; }
-		public bool IsDeleted { get; set; }
 	}
 }

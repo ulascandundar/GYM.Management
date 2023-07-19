@@ -1,5 +1,7 @@
 ﻿@page "/product"
+@attribute [Authorize(ManagementPermissions.Product.Default)]
 @using GYM.Management.Localization;
+@using GYM.Management.Permissions;
 @using GYM.Management.Products;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
@@ -158,5 +160,10 @@
 </Modal>
 
 @code {
-
+    public Product()
+    {
+        CreatePolicyName = ManagementPermissions.Product.Create;
+        UpdatePolicyName = ManagementPermissions.Product.Edit;
+        DeletePolicyName = ManagementPermissions.Product.Delete;
+    }
 }

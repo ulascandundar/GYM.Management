@@ -53,5 +53,17 @@ namespace GYM.Management.Members
             }
             return new PagedResultDto<MemberDto>(totalCount, listDto);
         }
+
+        public async Task<List<MemberDto>> GetDebtorMembers()
+        {
+            var query = await Repository.GetQueryableAsync();
+            query = query.Where(o => o.Debt > 0);
+            query = query.OrderByDescending(o => o.Debt);
+
+            query = query.Take(5);
+            var result = await AsyncExecuter.ToListAsync(query);
+            var listDto = ObjectMapper.Map<List<Member>, List<MemberDto>>(result);
+            return listDto;
+        }
     }
 }

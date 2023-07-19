@@ -65,12 +65,13 @@ namespace GYM.Management.Exercises
             var listDto = ObjectMapper.Map<List<Exercise>,List<ExerciseDto>>(result);
             return new PagedResultDto<ExerciseDto>(totalCount, listDto);
         }
-        public async Task AnyName(string name)
+        public async Task<bool> AnyName(string name)
         {
             if (await Repository.AnyAsync(o => o.Name.ToLower() == name.ToLower()))
             {
                 throw new UserFriendlyException("Aynı isimde ürün zaten var", "Aynı isimde ürün zaten var");
             }
+            return true;
         }
     }
 }

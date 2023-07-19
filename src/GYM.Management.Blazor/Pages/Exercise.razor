@@ -222,14 +222,18 @@
             }
             if (validate)
             {
-                await _exerciseService.AnyName(NewEntity.Name);
-                var data = await _exerciseService.CreateAsync(NewEntity);
+                var isany= await _exerciseService.AnyName(NewEntity.Name);
+                if (isany)
+                {
+                     var data = await _exerciseService.CreateAsync(NewEntity);
                  
                 var result = await _exerciseService.GetListAsync(Filter);
                 ExerciseList = result.Items;
                 TotalCount = (int)result.TotalCount;
                 await InvokeAsync(CreateModal.Hide);
                 await Notify.Success("Egzersiz eklendi");
+                }
+               
             }
             
         }

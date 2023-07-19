@@ -1,9 +1,11 @@
 ﻿@page "/Member"
+@using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
 @using GYM.Management.Products;
 @using GYM.Management.Trainers;
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Http.Extensions;
 @using Volo.Abp.Application.Dtos
 @using GYM.Management.Localization
 @using Microsoft.Extensions.Localization
@@ -12,6 +14,7 @@
 @inject IMemberService _memberService
 @inject ITrainerService _trainerService
 @inject IProductService _productService
+@inject IMemberOrderService _memberOrderService
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
@@ -54,7 +57,13 @@
                                           ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
                             <EntityAction TItem="MemberDto"
                                           Text="Ürün Tüketimi Ekle"
-                                          Clicked="() => OpenProductModel(context.Id)" />
+                                          Clicked="() => OpenProductModel(context.Id,context.Name)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Randevu Paketi Ekle"
+                                          Clicked="() => OpenStockModel(context.Id,context.Name)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Detaylı İşlemler"
+                                          Clicked="() => NavigateToPage(context.Id)" />
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
@@ -68,6 +77,12 @@
                         @context.CreationTime.ToLongDateString()
                     </DisplayTemplate>
                 </DataGridColumn>
+                <DataGridColumn TItem="MemberDto"
+                                Field="@nameof(MemberDto.AppointmentStock)"
+                                Caption="Randevu Hakkı"></DataGridColumn>
+                <DataGridColumn TItem="MemberDto"
+                                Field="@nameof(MemberDto.Debt)"
+                                Caption="Borç"></DataGridColumn>
                 <DataGridColumn TItem="MemberDto"
                                 Field="@nameof(MemberDto.TrainerName)"
                                 Caption="Antrenör"></DataGridColumn>
@@ -207,7 +222,7 @@
 <Modal @ref="modalRef">
     <ModalContent Size="ModalSize.Fullscreen">
         <ModalHeader>
-            <ModalTitle>Kategoriye dahil egzersizler</ModalTitle>
+            <ModalTitle>Ürünler</ModalTitle>
             <CloseButton />
         </ModalHeader>
         <ModalBody>
@@ -222,6 +237,7 @@
                                 <TableHeaderCell>Fiyat</TableHeaderCell>
                                 <TableHeaderCell>Miktar</TableHeaderCell>
                                 <TableHeaderCell>Toplam Tutar</TableHeaderCell>
+                                <TableHeaderCell></TableHeaderCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -241,6 +257,14 @@
                                             <TableRowCell>
                                             @calculateTotalPrice()
                                             </TableRowCell>
+                                            <TableRowCell>
+                                            <Column ColumnSize="ColumnSize.IsAuto">
+                                                <Button Color="Color.Primary"
+                                                Clicked="() => PlaceOrder(item)">
+                                                    Sipariş Ver
+                                                </Button>
+                                            </Column>
+                                            </TableRowCell>
                                     </TableRow>
                                 }
                             }
@@ -258,7 +282,42 @@
     </ModalContent>
 </Modal>
 
+<Modal @ref="stockModelRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> (@selectedName) Randevu Tanımlanıyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+                    <Field>
+                        <FieldLabel>Seans Adedi</FieldLabel>
+                <NumericPicker TValue="int" @bind-Value="appointmentDto.AppointmentStock"></NumericPicker> TL
+
+                    </Field>
+                    <Field>
+                        <FieldLabel>Seans Başı Ücret</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="appointmentDto.UnitPrice"></NumericEdit> Tl
+                    </Field>
+                    <Field>
+                        <FieldLabel>Toplam Tutar</FieldLabel>
+                <Span>@(appointmentDto.AppointmentStock * appointmentDto.UnitPrice) TL</Span>
+                    </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => PlaceOrderStock(appointmentDto)">
+                    Ekle
+                </Button>
+            </Column>
+               
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
+    @inject NavigationManager NavigationManager
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
     private IReadOnlyList<TrainerDto> TrainerList { get; set; } = new List<TrainerDto>();
     private IReadOnlyList<ProductDto> ProductList { get; set; } = new List<ProductDto>();
@@ -268,7 +327,10 @@
     private int TotalCount { get; set; }
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
     private Guid SelectedId;
+    private string selectedName;
     private Modal modalRef;
+    private Modal stockModelRef;
+    private MemberOrderAppointmentCreateDto appointmentDto { get; set; } = new MemberOrderAppointmentCreateDto();
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -327,11 +389,12 @@
             await HandleErrorAsync(ex);
         }
     }
-    private async Task OpenProductModel(Guid id)
+    private async Task OpenProductModel(Guid id,string memberName)
     {
         try
         {
             SelectedId = id;
+            selectedName = memberName;
             ProductList = (await _productService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 999 })).Items;
             await modalRef.Show();
         }
@@ -340,6 +403,25 @@
             await HandleErrorAsync(ex);
         }
     }
+    private async Task OpenStockModel(Guid id, string memberName)
+    {
+        try
+        {
+            SelectedId = id;
+            selectedName = memberName;
+            await stockModelRef.Show();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    
+    private void NavigateToPage(Guid id)
+    {
+        NavigationManager.NavigateTo($"/memberevent/{id}", true);
+    }
+
     private async Task AddData()
     {
         try
@@ -391,6 +473,34 @@
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task PlaceOrder(ProductDto dto)
+    {
+        var confirmed = await Message.Confirm($"{dto.Quantity} adet {dto.Name} satmak istediğinize eminmisiniz ?");
+        if (confirmed)
+        {
+            await _memberOrderService.PlaceOrder(dto, SelectedId);
+            dto.Quantity = 0;
+            await Message.Success("Satış tamamlandı");
+            var result = await _memberService.GetListAsync(Filter);
+            MemberList = result.Items;
+            TotalCount = (int)result.TotalCount;
+        }
+    }
+
+    private async Task PlaceOrderStock(MemberOrderAppointmentCreateDto dto)
+    {
+        var confirmed = await Message.Confirm($"{selectedName} isimli üyeye {dto.UnitPrice * dto.AppointmentStock} TL değerinde {dto.AppointmentStock} adet randevu tanımlanacak");
+        if (confirmed)
+        {
+            await _memberOrderService.PlaceOrderAppointment(dto, SelectedId);
+            dto = null;
+            await Message.Success("Randevu paketi tanımlandı");
+            var result = await _memberService.GetListAsync(Filter);
+            MemberList = result.Items;
+            TotalCount = (int)result.TotalCount;
         }
     }
 }

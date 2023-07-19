@@ -14,5 +14,7 @@ namespace GYM.Management.Members
         public Guid? TrainerId { get; set; }
         public TrainerDto Trainer { get; set; }
         public string TrainerName { get; set; }
+        public int AppointmentStock { get; set; }
+        public decimal Debt { get; set; }
     }
 }

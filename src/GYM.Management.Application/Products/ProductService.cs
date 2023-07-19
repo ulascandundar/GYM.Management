@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GYM.Management.Permissions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,11 @@ namespace GYM.Management.Products
     {
         public ProductService(IRepository<Product, Guid> repository) : base(repository)
         {
+            GetPolicyName = ManagementPermissions.Product.Default;
+            GetListPolicyName = ManagementPermissions.Product.Default;
+            CreatePolicyName = ManagementPermissions.Product.Create;
+            UpdatePolicyName = ManagementPermissions.Product.Edit;
+            DeletePolicyName = ManagementPermissions.Product.Delete;
         }
     }
 }

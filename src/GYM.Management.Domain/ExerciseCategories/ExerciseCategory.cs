@@ -10,7 +10,7 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace GYM.Management.ExerciseCategories
 {
-    public class ExerciseCategory : Entity<Guid>
+    public class ExerciseCategory : FullAuditedAggregateRoot<Guid>
     {
         public Guid ExerciseId { get; set; }
         public Guid CategoryId { get; set; }

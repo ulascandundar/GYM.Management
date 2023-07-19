@@ -11,11 +11,14 @@
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <PreserveCompilationReferences>true</PreserveCompilationReferences>
     <UserSecretsId>GYM.Management-4681b4fd-151f-4221-84a4-929d86723e4c</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Blazorise.Bootstrap5" Version="1.2.3" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
   </ItemGroup>
