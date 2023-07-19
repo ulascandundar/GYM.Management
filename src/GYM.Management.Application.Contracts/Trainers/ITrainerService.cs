@@ -11,7 +11,7 @@ namespace GYM.Management.Trainers
     {
         Task<List<TrainerDto>> GetAllTrainerForMember();
         Task PaySalary(Guid trainerId);
-
         Task DeleteAsyncById(Guid id);
+        Task<List<TrainerDto>> GetPaymentDuoTrainer();
     }
 }

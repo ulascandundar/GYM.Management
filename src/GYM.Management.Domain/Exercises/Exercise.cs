@@ -9,11 +9,10 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace GYM.Management.Exercises
 {
-    public class Exercise : AuditedAggregateRoot<Guid>,ISoftDelete
+    public class Exercise : FullAuditedAggregateRoot<Guid>
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public bool IsDeleted { get; set; }
         public virtual ICollection<ExerciseCategory> ExerciseCategories { get; set; }
     }
 }

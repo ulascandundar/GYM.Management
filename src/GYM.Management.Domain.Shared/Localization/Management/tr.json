@@ -16,6 +16,10 @@
     "Permission:Trainer.Create": "Antrenör oluşturma",
     "Permission:Trainer.Edit": "Antrenör güncelleme",
     "Permission:Trainer.Delete": "Antrenör silme",
+    "Permission:Product": "Ürün yönetimi",
+    "Permission:Product.Create": "Ürün oluşturma",
+    "Permission:Product.Edit": "Ürün güncelleme",
+    "Permission:Product.Delete": "Ürün silme",
     "Enum:ExpenseType.0": "Standart Harcama",
     "Enum:ExpenseType.1": "Maaş Ödeme"
   }

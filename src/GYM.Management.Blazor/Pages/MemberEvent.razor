@@ -1,0 +1,149 @@
+﻿@page "/memberevent/{Id:guid}"
+@using GYM.Management.MemberOrders;
+@using GYM.Management.Members;
+@using Volo.Abp.Application.Dtos;
+@inherits AbpCrudPageBase<IMemberOrderService, MemberOrderDto, Guid, PagedAndSortedResultRequestDto, MemberOrderCreateDto>
+@inject IMemberOrderService _memberOrderService
+@inject IMemberService _memberService
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <CardTitle Size="3">@member.Name Harcama Geçmişi</CardTitle>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <CardText>Toplam borç: @member.Debt TL</CardText>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <CardText>Toplam randevu hakkı: @member.AppointmentStock</CardText>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Clicked="() => OpenGainModel()" Color="Color.Primary">
+                    Borç Öde
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+
+        <DataGrid TItem="MemberOrderDto"
+                  Data="memberOrderList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="MemberOrderDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="MemberOrderDto" EntityActionsColumn="@EntityActionsColumn">
+                           
+                            <EntityAction TItem="MemberOrderDto"
+                                          Text="Sil"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                           
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+                <DataGridColumn TItem="MemberOrderDto"
+                                Field="@nameof(MemberOrderDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="MemberOrderDto"
+                                Field="@nameof(MemberOrderDto.TotalPrice)"
+                                Caption="Toplam Tutar"></DataGridColumn>
+                <DataGridColumn TItem="MemberOrderDto"
+                                Field="@nameof(MemberOrderDto.AppointmentStock)"
+                                Caption="Randevu Hakkı"></DataGridColumn>
+                <DataGridColumn TItem="MemberOrderDto"
+                                Field="@nameof(MemberOrderDto.MemberOrderType)"
+                                Caption="Tip">
+                    <DisplayTemplate>
+                        @(context.MemberOrderType == MemberOrderType.Product ? "Ürün" : "Randevu")
+                    </DisplayTemplate>
+                            </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> (@member.Name) Borç Ödeniyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Ödenecek Borç</FieldLabel>
+                <NumericEdit TValue="decimal" @bind-Value="debt"></NumericEdit> Tl
+            </Field>
+            <Field>
+                <FieldLabel>Toplam Borç</FieldLabel>
+                <Span>@(member.Debt) TL</Span>
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => PayDebt()">
+                    Öde
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    MemberDto member = new MemberDto();
+    IReadOnlyList<MemberOrderDto> memberOrderList = new List<MemberOrderDto>();
+    private PagedAndSortedResultRequestDto Filter { get; set; } = new PagedAndSortedResultRequestDto();
+    private Modal modalRef;
+    private string gaindesc = "";
+    private decimal debt = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = 0;
+        Filter.Sorting = CurrentSorting;
+        var result = await _memberOrderService.GetListAsync(Filter);
+        member = await _memberService.GetAsync(Id);
+        memberOrderList = result.Items;
+        TotalCount = (int)result.TotalCount;
+    }
+
+    private async Task OpenGainModel()
+    {
+        try
+        {
+            gaindesc = "";
+            debt = 0;
+            await modalRef.Show();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+    private async Task PayDebt()
+    {
+        var confirmed = await Message.Confirm($"{member.Name} isimli üyeye {debt} TL değerinde borç ödesi tanımlanacaktır");
+        if (confirmed)
+        {
+            await _memberOrderService.AddGain(member.Id, gaindesc, debt);
+            var result = await _memberOrderService.GetListAsync(Filter);
+            member = await _memberService.GetAsync(Id);
+            memberOrderList = result.Items;
+            TotalCount = (int)result.TotalCount;
+            debt = 0;
+            gaindesc = "";
+            await Notify.Success("Borç ödendi..");
+            await modalRef.Close(CloseReason.None);
+        }
+    }
+}

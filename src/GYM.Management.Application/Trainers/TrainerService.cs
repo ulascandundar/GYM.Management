@@ -60,5 +60,17 @@ namespace GYM.Management.Trainers
                 Date = DateTime.UtcNow
             });
         }
+
+        public async Task<List<TrainerDto>> GetPaymentDuoTrainer()
+        {
+            DateTime currentDate = DateTime.UtcNow;
+            int currentMonth = currentDate.Month;
+            int currentYear = currentDate.Year;
+            var query = await Repository.GetQueryableAsync();
+            query = query.Where(o => (o.lastSalaryDate != null && o.lastSalaryDate != DateTime.MinValue) && o.lastSalaryDate.Year < currentYear ||
+            (o.lastSalaryDate.Year == currentYear && o.lastSalaryDate.Month < currentMonth)).Take(5);
+            var result = await AsyncExecuter.ToListAsync(query);
+            return ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
+        }
     }
 }

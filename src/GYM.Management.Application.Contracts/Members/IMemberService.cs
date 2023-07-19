@@ -11,5 +11,6 @@ namespace GYM.Management.Members
     {
         Task AddDto(MemberCreateDto memberCreateDto);
         Task<PagedResultDto<MemberDto>> GetListAsync(GetMemberListInput input);
+        Task<List<MemberDto>> GetDebtorMembers();
     }
 }
