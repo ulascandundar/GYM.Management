@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
 
-namespace GYM.Management.Products
+namespace GYM.Management.WalletTransactions
 {
-    public interface IProductRepository : IRepository<Product,Guid>
+    public interface IWalletTransactionRepository :IRepository<WalletTransaction,Guid>
     {
     }
 }

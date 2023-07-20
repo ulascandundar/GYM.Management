@@ -15,6 +15,7 @@ namespace GYM.Management.Trainers
         public DateTime BirdthDate { get; set; }
         public string Telephone { get; set; }
         public decimal Salary { get; set; }
+        public decimal ProfitRate { get; set; }
 
     }
 }

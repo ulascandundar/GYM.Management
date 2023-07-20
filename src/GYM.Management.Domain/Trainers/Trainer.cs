@@ -17,6 +17,7 @@ namespace GYM.Management.Trainers
         public string Telephone { get; set; }
         public decimal Salary { get; set; }
         public DateTime lastSalaryDate { get; set; }
+        public decimal ProfitRate { get; set; }
         public virtual ICollection<Member> Members { get; set; }
         public virtual ICollection<Expense> Expenses { get; set; }
     }

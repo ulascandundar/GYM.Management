@@ -13,5 +13,6 @@ namespace GYM.Management.Trainers
         public string Telephone { get; set; }
         public decimal Salary  { get; set; }
         public DateTime lastSalaryDate { get; set; }
+        public decimal ProfitRate { get; set; }
     }
 }

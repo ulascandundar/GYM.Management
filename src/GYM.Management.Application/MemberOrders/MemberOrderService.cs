@@ -1,6 +1,9 @@
-﻿using GYM.Management.Gains;
+﻿using GYM.Management.Extensions;
+using GYM.Management.Gains;
 using GYM.Management.Members;
 using GYM.Management.Products;
+using GYM.Management.Trainers;
+using GYM.Management.Wallets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,17 +28,23 @@ namespace GYM.Management.MemberOrders
 		private readonly IMemberOrderRepository _memberOrderRepository;
 		private readonly IMemberRepository _memberRepository;
         private readonly IGainRepository _gainRepository;
+        private readonly ITrainerRepository _trainerRepository;
+        private readonly IWalletService _walletService;
         public MemberOrderService(IProductRepository productRepository, IMemberOrderRepository memberOrderRepository,
-            IMemberRepository memberRepository, IRepository<MemberOrder, Guid> repository, IGainRepository gainRepository) : base(repository)
+            IMemberRepository memberRepository, IRepository<MemberOrder, Guid> repository, IGainRepository gainRepository,
+            ITrainerRepository trainerRepository, IWalletService walletService) : base(repository)
         {
 			_productRepository = productRepository;
 			_memberOrderRepository = memberOrderRepository;
 			_memberRepository = memberRepository;
             _gainRepository = gainRepository;
+            _trainerRepository = trainerRepository;
+            _walletService = walletService;
 		}
 
 		public async Task PlaceOrder(ProductDto productDto, Guid memberId)
 		{
+            var trainer = await _trainerRepository.GetAsync(memberId);
 			var product = await _productRepository.GetAsync(o=>o.Id == productDto.Id);
 			var memberOrder = await _memberOrderRepository.InsertAsync(new MemberOrder
 			{
@@ -43,8 +52,10 @@ namespace GYM.Management.MemberOrders
 				TotalPrice = productDto.Quantity * product.BuyPrice,
 				Quantity= productDto.Quantity,
 				MemberId = memberId,
-				MemberOrderType = MemberOrderType.Product
-			});
+				MemberOrderType = MemberOrderType.Product,
+                Profit = productDto.Quantity * (product.BuyPrice - product.StockPrice)
+            });
+            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice).Percent(memberOrder.Profit) });
             var member = await _memberRepository.GetAsync(o => o.Id == memberId);
             member.Debt += memberOrder.TotalPrice;
             await _memberRepository.UpdateAsync(member);

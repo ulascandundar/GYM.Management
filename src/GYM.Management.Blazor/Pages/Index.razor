@@ -44,22 +44,40 @@
         </Card>
     </Column>
     <Column ColumnSize="ColumnSize.Is4">
-        <Card Background="Background.Success" WhiteText>
-            <CardBody>
+        <Card Background="Background.Light">
+            <CardHeader>
                 <CardTitle Size="3">
                     Borcu olan üyeler (En yüksek 5 üye)
                 </CardTitle>
-                <CardText>
-                    With supporting text below as a natural lead-in to additional content.
-                </CardText>
-                <Button Color="Color.Primary" Margin="Margin.Is2.FromTop">
-                    Read more <Icon Name="IconName.ArrowRight" />
-                </Button>
+            </CardHeader>
+            <CardBody>
+                <Table Bordered>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHeaderCell>İsim</TableHeaderCell>
+                            <TableHeaderCell>Borç</TableHeaderCell>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        @foreach (var item in memberDtos)
+                        {
+                            <TableRow>
+                                <TableRowCell>@item.Name</TableRowCell>
+                                <TableRowCell>@item.Debt TL</TableRowCell>
+                            </TableRow>
+                        }
+
+                    </TableBody>
+                </Table>
+                <CardFooter>
+                    <Button @onclick="@(() => NavigationManager.NavigateTo("/Member",true))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                        Müşteriler Sayfasına Git <Icon Name="IconName.ArrowRight" />
+                    </Button>
+                </CardFooter>
+
             </CardBody>
         </Card>
     </Column>
-   
-  
 </Row>
 
 @code {
@@ -68,7 +86,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //memberDtos = await _memberService.GetDebtorMembers();
-        //trainerDtos = await _trainerService.GetPaymentDuoTrainer();
+        memberDtos = await _memberService.GetDebtorMembers();
+        trainerDtos = await _trainerService.GetPaymentDuoTrainer();
     }
 }

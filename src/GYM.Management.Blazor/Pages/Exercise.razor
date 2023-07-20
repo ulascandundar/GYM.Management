@@ -273,7 +273,7 @@
     {
         try
         {
-            await _exerciseService.DeleteAsync(dto.Id);
+            await _exerciseService.RemoveAsync(dto.Id);
             var result = await _exerciseService.GetListAsync(Filter);
             ExerciseList = result.Items;
             TotalCount = (int)result.TotalCount;

@@ -1,13 +1,14 @@
-﻿using System;
+﻿using GYM.Management.Gains;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
 
-namespace GYM.Management.Products
+namespace GYM.Management.Categories
 {
-    public interface IProductRepository : IRepository<Product,Guid>
+    public interface ICategoryRepository : IRepository<Category>
     {
     }
 }

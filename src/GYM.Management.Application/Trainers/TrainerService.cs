@@ -66,9 +66,9 @@ namespace GYM.Management.Trainers
             DateTime currentDate = DateTime.UtcNow;
             int currentMonth = currentDate.Month;
             int currentYear = currentDate.Year;
+            var test = new DateTime(currentDate.Year, currentDate.Month, 1);
             var query = await Repository.GetQueryableAsync();
-            query = query.Where(o => (o.lastSalaryDate != null && o.lastSalaryDate != DateTime.MinValue) && o.lastSalaryDate.Year < currentYear ||
-            (o.lastSalaryDate.Year == currentYear && o.lastSalaryDate.Month < currentMonth)).Take(5);
+            query = query.Where(o => (o.lastSalaryDate == null)  || o.lastSalaryDate < new DateTime (currentDate.Year,currentDate.Month,1));
             var result = await AsyncExecuter.ToListAsync(query);
             return ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
         }

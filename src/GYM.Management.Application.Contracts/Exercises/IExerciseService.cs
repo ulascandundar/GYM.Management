@@ -13,5 +13,6 @@ namespace GYM.Management.Exercises
         Task<List<ExerciseDto>> GetAllWithoutCategoryExercisesAsync(Guid categoryId);
         Task<PagedResultDto<ExerciseDto>> GetListAsync(GetExerciseListInput input);
         Task<bool> AnyName(string name);
+        Task RemoveAsync(Guid id);
     }
 }
