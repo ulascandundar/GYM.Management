@@ -12,6 +12,7 @@ namespace GYM.Management.WalletTransactions
     {
         public bool IsPositive { get; set; }
         public decimal Amount { get; set; }
+        public string Description { get; set; }
         public Guid WalletId { get; set; }
         public virtual Wallet Wallet { get; set; }
     }

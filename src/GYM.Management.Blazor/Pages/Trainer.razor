@@ -41,6 +41,9 @@
                                           Text="Sil"
                                           Clicked="() => DeleteByIdAsync(context.Id)"
                                           ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                            <EntityAction TItem="TrainerDto"
+                                          Text="Cüzdana Git"
+                                          Clicked="() => NavigateToWallet(context.Id,context.Name)" />
                                           @if (IsPaymentDue(context.lastSalaryDate))
                             {
                                 <EntityAction TItem="TrainerDto"
@@ -53,6 +56,9 @@
                 <DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.Name)"
                                 Caption="İsim"></DataGridColumn>
+                <DataGridColumn TItem="TrainerDto"
+                                Field="@nameof(TrainerDto.ProfitRate)"
+                                Caption="Kar Oranı"></DataGridColumn>
                 <DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.Salary)"
                                 Caption="Maaş"></DataGridColumn>
@@ -107,7 +113,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                            <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -118,6 +124,12 @@
                         <FieldLabel>Maaş</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="NewEntity.Salary" />
                     </Field>
+                    <Validation>
+                    <Field>
+                        <FieldLabel>Kar Oranı</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="NewEntity.ProfitRate" />
+                    </Field>
+                    </Validation>
                     <Field>
                         <FieldLabel>Doğum Tarihi</FieldLabel>
                         <DatePicker TValue="DateTime" @bind-Date="NewEntity.BirdthDate" />
@@ -130,7 +142,7 @@
                 <Button Color="Color.Primary"
                         Type="@ButtonType.Submit"
                         PreventDefaultOnSubmit="true"
-                        Clicked="CreateEntityAsync">Kaydet</Button>
+                        Clicked="AddTrainerAsync">Kaydet</Button>
             </ModalFooter>
         </Form>
     </ModalContent>
@@ -164,14 +176,18 @@
                         <FieldLabel>Maaş</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="EditingEntity.Salary" />
                     </Field>
+                    <Field>
+                        <FieldLabel>Kar Oranı</FieldLabel>
+                        <NumericEdit TValue="decimal" @bind-Value="EditingEntity.ProfitRate" />
+                    </Field>
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" @bind-Text="@EditingEntity.Telephone">
+                            <InputMask Mask="9999999999" @bind-Text="@EditingEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </InputMask>
                         </Field>
                     </Validation>
                 </Validations>
@@ -189,12 +205,14 @@
 </Modal>
 
 @code {
+    @inject NavigationManager NavigationManager
     public Trainer()
     {
         CreatePolicyName = ManagementPermissions.Trainer.Create;
         UpdatePolicyName = ManagementPermissions.Trainer.Edit;
         DeletePolicyName = ManagementPermissions.Trainer.Delete;
     }
+
 
     public static bool IsPaymentDue(DateTime salaryDate)
     {
@@ -233,6 +251,37 @@
             await OnDeletingEntityAsync();
             await _trainerService.DeleteAsyncById(id);
             await OnDeletedEntityAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private void NavigateToWallet(Guid id,string name)
+    {
+        NavigationManager.NavigateTo($"/wallet/{id}/{name}", true);
+    }
+
+    private async Task AddTrainerAsync()
+    {
+        try
+        {
+            var validate = true;
+            if (CreateValidationsRef != null)
+            {
+                validate = await CreateValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                await OnCreatingEntityAsync();
+
+                await CheckCreatePolicyAsync();
+                var createInput = MapToCreateInput(NewEntity);
+                await _trainerService.AddAsync(createInput);
+
+                await OnCreatedEntityAsync();
+            }
         }
         catch (Exception ex)
         {

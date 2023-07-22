@@ -1,5 +1,6 @@
 ﻿using GYM.Management.Expenses;
 using GYM.Management.Permissions;
+using GYM.Management.Wallets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -71,6 +72,13 @@ namespace GYM.Management.Trainers
             query = query.Where(o => (o.lastSalaryDate == null)  || o.lastSalaryDate < new DateTime (currentDate.Year,currentDate.Month,1));
             var result = await AsyncExecuter.ToListAsync(query);
             return ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
+        }
+
+        public async Task AddAsync(TrainerCreateDto dto)
+        {
+            var trainer = ObjectMapper.Map<TrainerCreateDto, Trainer>(dto);
+            trainer.Wallet = new Wallet { };
+            await Repository.InsertAsync(trainer);
         }
     }
 }

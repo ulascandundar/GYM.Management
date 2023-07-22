@@ -26,5 +26,18 @@ namespace GYM.Management.Wallets
             await _walletRepository.UpdateAsync(wallet);
             await _walletTransactionRepository.InsertAsync(new WalletTransaction { Amount= walletCommitDto.Amount,IsPositive=true,WalletId=walletCommitDto.WalletId });
         }
+
+        public async Task<WalletDetailDto> GetDetail(Guid id,string trainerName)
+        {
+           var wallet = await _walletRepository.GetByTrainerId(id);
+            if (wallet == null)
+            {
+                var newWallet = new Wallet { TrainerId = id };
+                var addedWallet = await _walletRepository.InsertAsync(newWallet);
+                return new WalletDetailDto { Balance = newWallet.Balance, TrainerName = trainerName };
+            }
+            var transactions = wallet.WalletTransactions.Select(o => new WalletTransDto { Amount = o.Amount, Description =o.Description, IsPositive = o.IsPositive, WalletId = o.WalletId, Id = o.Id }).ToList();
+            return new WalletDetailDto { TrainerName = wallet.Trainer.Name, Balance = wallet.Balance,Trainsactions = transactions };
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using GYM.Management.EntityFrameworkCore;
 using GYM.Management.Wallets;
 using GYM.Management.WalletTransactions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,12 @@ namespace GYM.Management.Wallets
     {
         public WalletRepository(IDbContextProvider<ManagementDbContext> dbContextProvider) : base(dbContextProvider)
         {
+        }
+
+        public async Task<Wallet> GetByTrainerId(Guid id)
+        {
+            var result = await DbContext.Wallets.FirstOrDefaultAsync(o => o.TrainerId == id);
+            return result;
         }
     }
 }

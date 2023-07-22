@@ -9,5 +9,6 @@ namespace GYM.Management.Wallets
     public interface IWalletService :IApplicationService
     {
         Task CommitToWallet(WalletCommitDto walletCommitDto);
+        Task<WalletDetailDto> GetDetail(Guid id, string trainerName);
     }
 }

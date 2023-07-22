@@ -9,5 +9,6 @@ namespace GYM.Management.Wallets
 {
     public interface IWalletRepository : IRepository<Wallet,Guid>
     {
+        Task<Wallet> GetByTrainerId(Guid id);
     }
 }

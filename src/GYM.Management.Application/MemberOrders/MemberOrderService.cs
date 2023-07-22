@@ -44,7 +44,7 @@ namespace GYM.Management.MemberOrders
 
 		public async Task PlaceOrder(ProductDto productDto, Guid memberId)
 		{
-            var trainer = await _trainerRepository.GetAsync(memberId);
+            var trainer = await _trainerRepository.GetAsync((Guid)productDto.TrainerId);
 			var product = await _productRepository.GetAsync(o=>o.Id == productDto.Id);
 			var memberOrder = await _memberOrderRepository.InsertAsync(new MemberOrder
 			{
@@ -55,7 +55,8 @@ namespace GYM.Management.MemberOrders
 				MemberOrderType = MemberOrderType.Product,
                 Profit = productDto.Quantity * (product.BuyPrice - product.StockPrice)
             });
-            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice).Percent(memberOrder.Profit) });
+            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice).Percent(trainer.ProfitRate),WalletId =trainer.Wallet.Id,
+                Description = $"{product.Name} SATIŞI - {productDto.Quantity} ADET",IsPositive = true });
             var member = await _memberRepository.GetAsync(o => o.Id == memberId);
             member.Debt += memberOrder.TotalPrice;
             await _memberRepository.UpdateAsync(member);

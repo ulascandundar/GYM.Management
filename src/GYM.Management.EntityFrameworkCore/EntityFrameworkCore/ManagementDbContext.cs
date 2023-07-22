@@ -7,6 +7,8 @@ using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
 using GYM.Management.Trainers;
+using GYM.Management.Wallets;
+using GYM.Management.WalletTransactions;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -70,6 +72,8 @@ public class ManagementDbContext :
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<MemberOrder> MemberOrders { get; set; }
     public DbSet<Gain> Gains { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {
