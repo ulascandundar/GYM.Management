@@ -122,7 +122,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                            <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -181,7 +181,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                           <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -235,8 +235,6 @@
                             <TableRow>
                                 <TableHeaderCell>Ürün İsmi</TableHeaderCell>
                                 <TableHeaderCell>Fiyat</TableHeaderCell>
-                                @*<TableHeaderCell>Miktar</TableHeaderCell>
-                                <TableHeaderCell>Toplam Tutar</TableHeaderCell>*@
                                 <TableHeaderCell></TableHeaderCell>
                             </TableRow>
                         </TableHeader>
@@ -530,12 +528,14 @@
             var result = await _memberService.GetListAsync(Filter);
             MemberList = result.Items;
             TotalCount = (int)result.TotalCount;
+            productModalRef.Close(CloseReason.None);
         }
     }
 
     private async Task OpenOrderModel(ProductDto dto)
     {
         SelectedProduct = dto;
+        SelectedProduct.TrainerId = TrainerList.FirstOrDefault().Id;
         productModalRef.Show();
         modalRef.Close(CloseReason.None);
     }

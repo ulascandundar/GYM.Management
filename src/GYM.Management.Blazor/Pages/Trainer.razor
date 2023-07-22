@@ -24,8 +24,27 @@
         </Row>
     </CardHeader>
     <CardBody>
+        <div id="UserFilterSection" class="row mt-3">
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>İsim</FieldLabel>
+                    <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Name" />
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <Check TValue="bool" @bind-Checked="@Filter.IsPay">Maaşı Ödenmemişleri Getir</Check>
+                </Field>
+                <Field>
+                    <Button Color="Color.Primary"
+                            Clicked="() => Refresh()">
+                        Filtrele
+                    </Button>
+                </Field>
+            </Column>
+        </div>
         <DataGrid TItem="TrainerDto"
-                  Data="Entities"
+                  Data="TrainerList"
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
@@ -102,7 +121,7 @@
                 <Validations @ref="@CreateValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
                     <Validation>
                         <Field>
-                            <FieldLabel>İsim</FieldLabel>
+                            <FieldLabel>İsim</FieldLabel>""
                             <TextEdit @bind-Text="@NewEntity.Name">
                                 <Feedback>
                                     <ValidationError/>
@@ -183,11 +202,11 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <InputMask Mask="9999999999" @bind-Text="@EditingEntity.Telephone">
+                            <TextEdit MaskType="MaskType.Numeric" @bind-Text="@EditingEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </InputMask>
+                            </TextEdit>
                         </Field>
                     </Validation>
                 </Validations>
@@ -206,6 +225,12 @@
 
 @code {
     @inject NavigationManager NavigationManager
+    private IReadOnlyList<TrainerDto> TrainerList { get; set; } = new List<TrainerDto>();
+    private GetTrainerListInput Filter { get; set; } = new GetTrainerListInput();
+    private int CurrentPage { get; set; }
+    private string CurrentSorting { get; set; }
+    private int TotalCount { get; set; }
+    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
     public Trainer()
     {
         CreatePolicyName = ManagementPermissions.Trainer.Create;
@@ -213,6 +238,22 @@
         DeletePolicyName = ManagementPermissions.Trainer.Delete;
     }
 
+    protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<TrainerDto> e)
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        CurrentSorting = e.Columns
+            .Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.SortField + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+        CurrentPage = e.Page;
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        await Refresh();
+        //await GetEntitiesAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
 
     public static bool IsPaymentDue(DateTime salaryDate)
     {
@@ -239,7 +280,7 @@
     private async Task Pay(Guid id)
     {
         await _trainerService.PaySalary(id);
-        await GetEntitiesAsync();
+        await Refresh();
         await Notify.Success("Maaş Ödendi");
     }
 
@@ -250,7 +291,7 @@
             await CheckDeletePolicyAsync();
             await OnDeletingEntityAsync();
             await _trainerService.DeleteAsyncById(id);
-            await OnDeletedEntityAsync();
+            await Refresh();
         }
         catch (Exception ex)
         {
@@ -279,8 +320,61 @@
                 await CheckCreatePolicyAsync();
                 var createInput = MapToCreateInput(NewEntity);
                 await _trainerService.AddAsync(createInput);
+                await Refresh();
+                await CreateModal.Close(CloseReason.None);
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
 
-                await OnCreatedEntityAsync();
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Filter.MaxResultCount = PageSize;
+            Filter.SkipCount = (CurrentPage - 1) * PageSize;
+            Filter.Sorting = CurrentSorting;
+            await Refresh();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = 0;
+        Filter.Sorting = CurrentSorting;
+        await Refresh();
+    }
+
+    private async Task Refresh()
+    {
+        var result = await _trainerService.GetListAsync(Filter);
+        TrainerList = result.Items;
+        TotalCount = (int)result.TotalCount;
+    }
+
+    private async Task UpdateEntityAsync()
+    {
+        try
+        {
+            var validate = true;
+            if (EditValidationsRef != null)
+            {
+                validate = await EditValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                await OnUpdatingEntityAsync();
+
+                await CheckUpdatePolicyAsync();
+                var updateInput = MapToUpdateInput(EditingEntity);
+                await AppService.UpdateAsync(EditingEntityId, updateInput);
+                Refresh();
+                await EditModal.Close(CloseReason.None);
             }
         }
         catch (Exception ex)

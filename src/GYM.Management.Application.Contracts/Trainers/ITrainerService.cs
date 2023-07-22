@@ -14,5 +14,6 @@ namespace GYM.Management.Trainers
         Task DeleteAsyncById(Guid id);
         Task<List<TrainerDto>> GetPaymentDuoTrainer();
         Task AddAsync(TrainerCreateDto dto);
+        Task<PagedResultDto<TrainerDto>> GetListAsync(GetTrainerListInput input);
     }
 }

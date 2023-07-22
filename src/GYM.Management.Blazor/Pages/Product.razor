@@ -53,6 +53,12 @@
                                 Field="@nameof(ProductDto.Description)"
                                 Caption="Açıklama"></DataGridColumn>
                 <DataGridColumn TItem="ProductDto"
+                                Field="@nameof(ProductDto.Stock)"
+                                Caption="Stok"></DataGridColumn>
+                <DataGridColumn TItem="ProductDto"
+                                Field="@nameof(ProductDto.StockPrice)"
+                                Caption="Stok Birim Fiyatı"></DataGridColumn>
+                <DataGridColumn TItem="ProductDto"
                                 Field="@nameof(ProductDto.CreationTime)"
                                 Caption="Eklenme Tarihi">
                     <DisplayTemplate>
@@ -93,8 +99,28 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Başlangıç Stoğu</FieldLabel>
+                            <NumericEdit TValue="int" @bind-Text="@NewEntity.Stock">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </NumericEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Stok Fiyatı</FieldLabel>
+                            <NumericEdit TValue="int" @bind-Text="@NewEntity.StockPrice">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </NumericEdit>
+                        </Field>
+                    </Validation>
                     <Field>
-                        <FieldLabel>Fiyat</FieldLabel>
+                        <FieldLabel>Satış Fiyat</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="NewEntity.BuyPrice" />
                     </Field>
                    
@@ -141,6 +167,17 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Stok Fiyatı</FieldLabel>
+                            <NumericEdit TValue="int" @bind-Text="@EditingEntity.StockPrice">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </NumericEdit>
+                        </Field>
+                    </Validation>
+                   
                     <Field>
                         <FieldLabel>Fiyat</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="EditingEntity.BuyPrice" />

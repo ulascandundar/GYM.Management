@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Entities.Auditing;
 
 namespace GYM.Management.WalletTransactions
 {
-    public class WalletTransaction : Entity<Guid>
+    public class WalletTransaction : FullAuditedAggregateRoot<Guid>
     {
         public bool IsPositive { get; set; }
         public decimal Amount { get; set; }
