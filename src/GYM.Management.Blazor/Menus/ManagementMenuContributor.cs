@@ -99,7 +99,11 @@ public class ManagementMenuContributor : IMenuContributor
             "Ürün Listesi",
             url: "/product"
         )
-    )
+    ).AddItem(new ApplicationMenuItem(
+    "gym.Urun.StokSayim",
+    "Stok Sayımları",
+    url: "/stocktakings"
+))
 );
         context.Menu.AddItem(new ApplicationMenuItem(
     "Giderler",

@@ -1,4 +1,5 @@
 ﻿@page "/Member"
+@attribute [Authorize(ManagementPermissions.Member.Default)]
 @using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
@@ -536,8 +537,8 @@
     {
         SelectedProduct = dto;
         SelectedProduct.TrainerId = TrainerList.FirstOrDefault().Id;
-        productModalRef.Show();
-        modalRef.Close(CloseReason.None);
+        await productModalRef.Show();
+        await modalRef.Close(CloseReason.None);
     }
 
     private async Task PlaceOrderStock(MemberOrderAppointmentCreateDto dto)

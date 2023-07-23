@@ -1,5 +1,6 @@
 ﻿using GYM.Management.Permissions;
 using GYM.Management.Trainers;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,6 @@
 ﻿@page "/wallet/{Id:guid}/{Name}"
+@attribute [Authorize(ManagementPermissions.Wallet.Default)]
+@using GYM.Management.Permissions;
 @using GYM.Management.Wallets;
 @using Volo.Abp.Application.Dtos;
 @using Volo.Abp.AspNetCore.Components.Messages;

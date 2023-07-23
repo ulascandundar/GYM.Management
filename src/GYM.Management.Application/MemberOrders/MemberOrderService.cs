@@ -1,9 +1,11 @@
 ﻿using GYM.Management.Extensions;
 using GYM.Management.Gains;
 using GYM.Management.Members;
+using GYM.Management.Permissions;
 using GYM.Management.Products;
 using GYM.Management.Trainers;
 using GYM.Management.Wallets;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +43,8 @@ namespace GYM.Management.MemberOrders
             _trainerRepository = trainerRepository;
             _walletService = walletService;
 		}
-
-		public async Task PlaceOrder(ProductDto productDto, Guid memberId)
+        [Authorize(ManagementPermissions.Member.AddProduct)]
+        public async Task PlaceOrder(ProductDto productDto, Guid memberId)
 		{
             var trainer = await _trainerRepository.GetAsync((Guid)productDto.TrainerId);
 			var product = await _productRepository.GetAsync(o=>o.Id == productDto.Id);
@@ -61,6 +63,7 @@ namespace GYM.Management.MemberOrders
             member.Debt += memberOrder.TotalPrice;
             await _memberRepository.UpdateAsync(member);
         }
+        [Authorize(ManagementPermissions.Member.AddAppointment)]
         public async Task PlaceOrderAppointment(MemberOrderAppointmentCreateDto dto, Guid memberId)
         {
             var memberOrder = await _memberOrderRepository.InsertAsync(new MemberOrder
@@ -75,7 +78,7 @@ namespace GYM.Management.MemberOrders
             member.Debt += memberOrder.TotalPrice;
             await _memberRepository.UpdateAsync(member);
         }
-
+        [Authorize(ManagementPermissions.Member.Pay)]
         public async Task AddGain(Guid memberId,string description,decimal amount)
         {
             var member = await _memberRepository.GetAsync(o => o.Id == memberId);

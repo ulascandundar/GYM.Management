@@ -1,5 +1,7 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.Permissions;
 using GYM.Management.WalletTransactions;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,7 @@ using Volo.Abp.Application.Services;
 
 namespace GYM.Management.Wallets
 {
+    [Authorize(ManagementPermissions.Wallet.Default)]
     public class WalletService : ApplicationService, IWalletService
     {
         private readonly IWalletRepository _walletRepository;
@@ -21,7 +24,7 @@ namespace GYM.Management.Wallets
             _walletTransactionRepository = walletTransactionRepository;
             _expenseRepository = expenseRepository;
         }
-
+        [Authorize(ManagementPermissions.Wallet.Edit)]
         public async Task CommitToWallet(WalletCommitDto walletCommitDto)
         {
             var wallet = await _walletRepository.GetAsync(o => o.Id == walletCommitDto.WalletId);

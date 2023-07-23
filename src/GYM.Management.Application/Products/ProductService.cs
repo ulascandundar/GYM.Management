@@ -1,6 +1,7 @@
 ﻿using GYM.Management.Expenses;
 using GYM.Management.Permissions;
 using GYM.Management.StockTakings;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,7 @@ namespace GYM.Management.Products
             _stockTakingRepository= stockTakingRepository;
             _expenseRepository= expenseRepository;
         }
-
+        [Authorize(ManagementPermissions.Product.StockTaking)]
         public async Task StockTaking(StockTakingCreateDto dto)
         {
             var product = await Repository.GetAsync(dto.ProductId);
@@ -47,7 +48,7 @@ namespace GYM.Management.Products
             product.Stock = dto.NewStock;
             await Repository.UpdateAsync(product);
         }
-
+        [Authorize(ManagementPermissions.Product.StockOrder)]
         public async Task StockOrder(StockOrderCreateDto stockOrderCreateDto)
         {
             var product = await Repository.GetAsync(stockOrderCreateDto.ProductId);
