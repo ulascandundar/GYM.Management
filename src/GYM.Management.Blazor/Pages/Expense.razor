@@ -41,9 +41,6 @@
                     <DisplayTemplate>
                         <EntityActions TItem="ExpenseDto" EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="ExpenseDto"
-                                          Text="Güncelle"
-                                          Clicked="() => OpenEditModalAsync(context)" />
-                            <EntityAction TItem="ExpenseDto"
                                           Text="Sil"
                                           Clicked="() => DeleteData(context)"
                                           ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />

@@ -8,6 +8,8 @@ namespace GYM.Management.Expenses
     {
         Spending = 0,
         Salary = 1,
-        Wallet = 2
+        Wallet = 2,
+        StockOrder= 3,
+        StockLeak =4
     }
 }

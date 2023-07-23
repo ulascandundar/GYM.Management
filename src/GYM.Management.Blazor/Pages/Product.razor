@@ -3,10 +3,12 @@
 @using GYM.Management.Localization;
 @using GYM.Management.Permissions;
 @using GYM.Management.Products;
+@using GYM.Management.StockTakings;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
 @inject IStringLocalizer<ManagementResource> L
 @inherits AbpCrudPageBase<IProductService, ProductDto, Guid, PagedAndSortedResultRequestDto, ProductCreateDto>
+@inject IProductService _productService
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
@@ -39,6 +41,14 @@
                                           Text="Sil"
                                           Clicked="() => DeleteEntityAsync(context)"
                                           ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+
+                            <EntityAction TItem="ProductDto"
+                                          Text="Stok Sayımı Yap"
+                                          Clicked="() => OpenStockTaking(context)" />
+
+                            <EntityAction TItem="ProductDto"
+                                          Text="Stok Siparişi"
+                                          Clicked="() => OpenStockOrder(context)" />
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
@@ -112,7 +122,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Stok Fiyatı</FieldLabel>
-                            <NumericEdit TValue="int" @bind-Text="@NewEntity.StockPrice">
+                            <NumericEdit TValue="decimal" @bind-Value="@NewEntity.StockPrice">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -170,7 +180,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Stok Fiyatı</FieldLabel>
-                            <NumericEdit TValue="int" @bind-Text="@EditingEntity.StockPrice">
+                            <NumericEdit TValue="decimal" @bind-Value="@EditingEntity.StockPrice">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -195,12 +205,153 @@
         </Form>
     </ModalContent>
 </Modal>
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> (@stockTakingCreateDto.ProductName) Stok Sayımı Yapılıyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Sayılan Stok</FieldLabel>
+                <NumericPicker TValue="int" @bind-Value="stockTakingCreateDto.NewStock"></NumericPicker>
 
+            </Field>
+            <Field>
+                <FieldLabel>Açıklama</FieldLabel>
+                <TextEdit @bind-Text="stockTakingCreateDto.Description"></TextEdit> 
+
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => StockTaking()">
+                    Ekle
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalStockOrderRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> (@selectedProductName) Stok Siparişi Yapılıyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Sipariş Stok Adedi</FieldLabel>
+                <NumericPicker TValue="int" @bind-Value="stockOrderCreateDto.Quantity"></NumericPicker>
+
+            </Field>
+            <Field>
+                <FieldLabel>Açıklama</FieldLabel>
+                <TextEdit @bind-Text="stockOrderCreateDto.Description"></TextEdit>
+
+            </Field>
+            <Field>
+                <FieldLabel>Toplam Tutar</FieldLabel>
+                <Label>@(stockOrderCreateDto.Quantity * stockOrderCreateDto.StockBuyPrice) TL</Label>
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => StockOrder()">
+                    Ekle
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
     public Product()
     {
         CreatePolicyName = ManagementPermissions.Product.Create;
         UpdatePolicyName = ManagementPermissions.Product.Edit;
         DeletePolicyName = ManagementPermissions.Product.Delete;
+    }
+    private Modal modalRef;
+    private Modal modalStockOrderRef;
+    StockTakingCreateDto stockTakingCreateDto = new StockTakingCreateDto();
+    StockOrderCreateDto stockOrderCreateDto = new StockOrderCreateDto();
+    private string selectedProductName = "";
+    private async Task OpenStockTaking(ProductDto dto)
+    {
+        stockTakingCreateDto = new StockTakingCreateDto { NewStock = dto.Stock, ProductName = dto.Name, ProductId = dto.Id };
+        await modalRef.Show();
+    }
+    private async Task OpenStockOrder(ProductDto dto)
+    {
+        stockOrderCreateDto = new StockOrderCreateDto { ProductId = dto.Id,StockBuyPrice = dto.StockPrice };
+        selectedProductName = dto.Name;
+        await modalStockOrderRef.Show();
+    }
+
+    private async Task StockTaking()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{stockTakingCreateDto.NewStock} adet {stockTakingCreateDto.ProductName} olduğuna eminmisiniz ?");
+            await _productService.StockTaking(stockTakingCreateDto);
+            await modalRef.Close(CloseReason.None);
+            await OnCreatedEntityAsync();
+            await Message.Success("Stok Sayımı Tamamlandı");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task StockOrder()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{stockOrderCreateDto.Quantity} adet {selectedProductName} almak istediğinize eminmisiniz ?");
+            if (confirmed)
+            {
+                await _productService.StockOrder(stockOrderCreateDto);
+                await modalStockOrderRef.Close(CloseReason.None);
+                await OnCreatedEntityAsync();
+                await Message.Success("Sipariş Tamamlandı");
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CreateEntityAsync()
+    {
+        try
+        {
+            var validate = true;
+            if (CreateValidationsRef != null)
+            {
+                validate = await CreateValidationsRef.ValidateAll();
+            }
+            if (validate)
+            {
+                await OnCreatingEntityAsync();
+
+                await CheckCreatePolicyAsync();
+                var createInput = MapToCreateInput(NewEntity);
+                await AppService.CreateAsync(createInput);
+                await OnCreatedEntityAsync();
+                await Message.Success("Yeni Ürün Eklendi");
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 }

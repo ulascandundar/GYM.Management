@@ -22,6 +22,8 @@
     "Permission:Product.Delete": "Ürün silme",
     "Enum:ExpenseType.0": "Standart Harcama",
     "Enum:ExpenseType.1": "Maaş Ödeme",
-    "Enum:ExpenseType.2": "Cüzdandan Para Çekme"
+    "Enum:ExpenseType.2": "Cüzdandan Para Çekme",
+    "Enum:ExpenseType.3": "Stok Siparişi",
+    "Enum:ExpenseType.4": "Stok Sayımı"
   }
 }
