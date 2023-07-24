@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using GYM.Management.Localization;
 using GYM.Management.MultiTenancy;
+using GYM.Management.Permissions;
+using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Identity.Blazor;
 using Volo.Abp.SettingManagement.Blazor.Menus;
 using Volo.Abp.TenantManagement.Blazor.Navigation;
@@ -38,7 +40,7 @@ public class ManagementMenuContributor : IMenuContributor
 		"Exercise",
 		"Egzersizler",
 		icon: "fa fa-bicycle"
-	).AddItem(
+	).RequirePermissions(ManagementPermissions.Exercise.Default).AddItem(
 		new ApplicationMenuItem(
 			"gym.Exercise",
 			"Egzersiz Listesi",
@@ -52,7 +54,7 @@ public class ManagementMenuContributor : IMenuContributor
         "Kategori",
         "Kategoriler",
         icon: "fa fa-cubes"
-    ).AddItem(
+    ).RequirePermissions(ManagementPermissions.Category.Default).AddItem(
         new ApplicationMenuItem(
             "gym.Kategori",
             "Kategori Listesi",
@@ -65,7 +67,7 @@ public class ManagementMenuContributor : IMenuContributor
         "Antrenor",
         "Antrenorler",
         icon: "fa fa-address-card"
-	).AddItem(
+	).RequirePermissions(ManagementPermissions.Trainer.Default).AddItem(
         new ApplicationMenuItem(
             "gym.Antrenor",
             "Antrenör Listesi",
@@ -79,7 +81,7 @@ public class ManagementMenuContributor : IMenuContributor
         "Uye",
         "Uyeler",
         icon: "fa fa-users"
-    ).AddItem(
+    ).RequirePermissions(ManagementPermissions.Member.Default).AddItem(
         new ApplicationMenuItem(
             "gym.Uye",
             "Üye Listesi",
@@ -93,27 +95,38 @@ public class ManagementMenuContributor : IMenuContributor
         "Urun",
         "Urunler",
         icon: "fa fa-tint"
-    ).AddItem(
+    ).RequirePermissions(ManagementPermissions.Product.Default).AddItem(
         new ApplicationMenuItem(
             "gym.Urun",
             "Ürün Listesi",
             url: "/product"
-        )
-    )
+        ).RequirePermissions(ManagementPermissions.Product.Default)
+    ).AddItem(new ApplicationMenuItem(
+    "gym.Urun.StokSayim",
+    "Stok Sayımları",
+    url: "/stocktakings"
+).RequirePermissions(ManagementPermissions.Product.StockTakingHistory)).AddItem(new ApplicationMenuItem(
+    "gym.Urun.Zaiyat",
+    "Zaiyat Geçmişi",
+    url: "/loss"
+).RequirePermissions(ManagementPermissions.Product.StockLossHistory))
 );
+
+
+
         context.Menu.AddItem(new ApplicationMenuItem(
     "Giderler",
     "Giderler",
     icon: "fa fa-book"
-).AddItem(new ApplicationMenuItem(
+).RequirePermissions(ManagementPermissions.Expense.Default).AddItem(new ApplicationMenuItem(
     "gym.Giderler.GiderListesi",
     "Gider Listesi",
     url: "/expense"
-)).AddItem(new ApplicationMenuItem(
+).RequirePermissions(ManagementPermissions.Exercise.Default)).AddItem(new ApplicationMenuItem(
     "gym.Giderler.KartRaporlari",
     "Kart Raporları",
     url: "/expensereport"
-)));
+).RequirePermissions(ManagementPermissions.Exercise.Default)));
         if (MultiTenancyConsts.IsEnabled)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

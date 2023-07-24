@@ -21,6 +21,7 @@ namespace GYM.Management.Categories
         CategoryCreateDto>,
         ICategoryService
     {
+        private readonly ICategoryRepository _categoryRepository;
         public CategoryService(IRepository<Category, Guid> repository)
          : base(repository)
         {

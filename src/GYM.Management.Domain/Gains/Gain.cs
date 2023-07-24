@@ -14,5 +14,6 @@ namespace GYM.Management.Gains
         public decimal Amount { get; set; }
         public Guid MemberId { get; set; }
         public virtual Member Member { get; set; }
+        public Guid? TrainerId { get; set; }
     }
 }

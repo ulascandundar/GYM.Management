@@ -7,7 +7,7 @@ using Volo.Abp.Domain.Repositories;
 
 namespace GYM.Management.Products
 {
-    public interface IProductRepository : IRepository<Product>
+    public interface IProductRepository : IRepository<Product,Guid>
     {
     }
 }

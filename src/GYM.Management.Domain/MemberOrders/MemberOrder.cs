@@ -14,6 +14,7 @@ namespace GYM.Management.MemberOrders
     {
 		public int Quantity { get; set; }
 		public decimal TotalPrice { get; set; }
+		public decimal Profit { get; set; }
 		public int AppointmentStock { get; set; }
 		public MemberOrderType MemberOrderType { get; set; }
 		public Guid MemberId { get; set; }

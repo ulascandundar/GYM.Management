@@ -1,0 +1,74 @@
+﻿@page "/stocktakings"
+@attribute [Authorize(ManagementPermissions.Product.StockTakingHistory)]
+@using GYM.Management.Permissions;
+@using GYM.Management.StockTakings;
+@using Volo.Abp.Application.Dtos;
+@inherits AbpCrudPageBase<IStockTakingService, StockTakingDto, Guid, PagedAndSortedResultRequestDto, StockTakingCreateDto>
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Stok Sayımları</h2>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="StockTakingDto"
+                  Data="Entities"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+               @* <DataGridEntityActionsColumn TItem="StockTakingDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="CategoryDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Güncelle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Sil"
+                                          Clicked="() => DeleteEntityAsync(context)"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Egzersizleri düzenle"
+                                          Clicked="() => ShowModal(context.Id)" />
+
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>*@
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.ProductName)"
+                                Caption="Stok ismi"></DataGridColumn>
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.OldStock)"
+                                Caption="Eski Stok"></DataGridColumn>
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.NewStock)"
+                                Caption="Yeni Stok"></DataGridColumn>
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.NewStock)"
+                                Caption="Fark">
+                    <DisplayTemplate>
+                        @(context.NewStock-context.OldStock)
+                    </DisplayTemplate>
+                            </DataGridColumn>
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.Description)"
+                                Caption="Açıklama"></DataGridColumn>
+                <DataGridColumn TItem="StockTakingDto"
+                                Field="@nameof(StockTakingDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@code {
+
+}

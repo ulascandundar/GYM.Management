@@ -1,0 +1,50 @@
+﻿@page "/loss"
+@using GYM.Management.Localization;
+@attribute [Authorize(ManagementPermissions.Product.StockLossHistory)]
+@using GYM.Management.Losses;
+@using GYM.Management.Permissions;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@inject IStringLocalizer<ManagementResource> L
+@inherits AbpCrudPageBase<ILossService, LossDto, Guid, PagedAndSortedResultRequestDto, LossCreateDto>
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Zaiyat Geçmişi</h2>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="LossDto"
+                  Data="Entities"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridColumn TItem="LossDto"
+                                Field="@nameof(LossDto.ProductName)"
+                                Caption="Ürün İsmi"></DataGridColumn>
+                <DataGridColumn TItem="LossDto"
+                                Field="@nameof(LossDto.Quantity)"
+                                Caption="Adet">
+                </DataGridColumn>
+                <DataGridColumn TItem="LossDto"
+                                Field="@nameof(LossDto.Description)"
+                                Caption="Açıklama"></DataGridColumn>
+                <DataGridColumn TItem="LossDto"
+                                Field="@nameof(LossDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@code {
+
+}

@@ -1,5 +1,7 @@
 ﻿@page "/expense"
+@attribute [Authorize(ManagementPermissions.Expense.Default)]
 @using GYM.Management.Expenses;
+@using GYM.Management.Permissions;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
 @using GYM.Management.Localization
@@ -23,12 +25,40 @@
     </CardHeader>
     <CardBody>
         <div id="UserFilterSection" class="row mt-3">
-            <Column ColumnSize="ColumnSize.Is12">
+            <Column ColumnSize="ColumnSize.Is6">
                 <Field>
                     <FieldLabel>Açıklama Filtresi</FieldLabel>
                     <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Description" />
                 </Field>
             </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>Gider Tipi</FieldLabel>
+                    <Select TValue="ExpenseType?" @bind-SelectedValue="@Filter.ExpenseType">
+                        <SelectItem></SelectItem>
+                        <SelectItem Value="ExpenseType.Spending"> @L[$"Enum:ExpenseType.0"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Salary"> @L[$"Enum:ExpenseType.1"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Wallet"> @L[$"Enum:ExpenseType.2"]</SelectItem>
+                        <SelectItem Value="ExpenseType.StockOrder"> @L[$"Enum:ExpenseType.3"]</SelectItem>
+                        <SelectItem Value="ExpenseType.StockLeak"> @L[$"Enum:ExpenseType.4"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Loss"> @L[$"Enum:ExpenseType.5"]</SelectItem>
+                    </Select>
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Başlangıç Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.StartDate"></InputDate>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Sonlanma Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.EndDate"></InputDate>
+            </Column>
+            <Field>
+                <Button Color="Color.Primary"
+                        Clicked="() => Refresh()">
+                    Filtrele
+                </Button>
+            </Field>
         </div>
         <DataGrid TItem="ExpenseDto"
                   Data="ExpenseList"
@@ -40,9 +70,6 @@
                 <DataGridEntityActionsColumn TItem="ExpenseDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
                         <EntityActions TItem="ExpenseDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="ExpenseDto"
-                                          Text="Güncelle"
-                                          Clicked="() => OpenEditModalAsync(context)" />
                             <EntityAction TItem="ExpenseDto"
                                           Text="Sil"
                                           Clicked="() => DeleteData(context)"
@@ -221,7 +248,7 @@
         ExpenseList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
-
+    [Authorize(ManagementPermissions.Expense.Create)]
     private async Task AddData()
     {
         try
@@ -249,6 +276,7 @@
             await HandleErrorAsync(ex);
         }
     }
+    [Authorize(ManagementPermissions.Exercise.Edit)]
     private async Task EditData()
     {
         try
@@ -274,7 +302,7 @@
             await HandleErrorAsync(ex);
         }
     }
-
+    [Authorize(ManagementPermissions.Exercise.Delete)]
     private async Task DeleteData(ExpenseDto dto)
     {
         try
@@ -289,5 +317,12 @@
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task Refresh()
+    {
+        var result = await _expenseService.GetListAsync(Filter);
+        ExpenseList = result.Items;
+        TotalCount = (int)result.TotalCount;
     }
 }

@@ -1,0 +1,168 @@
+﻿@page "/wallet/{Id:guid}/{Name}"
+@attribute [Authorize(ManagementPermissions.Wallet.Default)]
+@using GYM.Management.Permissions;
+@using GYM.Management.Wallets;
+@using Volo.Abp.Application.Dtos;
+@using Volo.Abp.AspNetCore.Components.Messages;
+@using Volo.Abp;
+@using Volo.Abp.AspNetCore.Components;
+@inject IWalletService _walletService
+@inherits ManagementComponentBase
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Row>
+            <Column ColumnSize="ColumnSize.Is9">
+                <div class="credit-card-wrap">
+                    <div class="mk-icon-world-map"></div>
+                    <div class="credit-card-inner">
+                        <header class="header">
+                            <div class="credit-logo">
+                                <span class="text">KOLAYLA</span>
+                                @*<img src="/images/mastercard.png" />*@
+                            </div>
+                        </header>
+                        <div class="mk-icon-sim"></div>
+                        <div class="credit-font credit-card-number" data-text="BAKİYE : @walletDetailDto.Balance TL">0000 0000 0000 0000</div>
+                        <footer class="footer">
+                            <div class="clearfix">
+                                <div class="pull-left">
+                                    @* <div class="credit-card-date"><span class="title">BAKİYE</span><span class="credit-font">@walletDetailDto.Balance TL</span></div>*@
+                                    <div class="credit-font credit-author">@walletDetailDto.TrainerName</div>
+                                </div>
+                                <div class="pull-right"><div class="mk-icon-visa"></div></div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </Column>
+        
+            <Column ColumnSize="ColumnSize.Is3">
+                <Button Clicked="() => OpenModel()" Color="Color.Success">Para Çek</Button>
+            </Column>
+        </Row>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is6"> 
+
+        <Text>İŞLEM GEÇMİŞİ</Text>
+        @foreach (var item in walletDetailDto.Trainsactions)
+        {
+            @if (item.IsPositive)
+            {
+                <Row>
+                    <Card TextColor="TextColor.White" Background="Background.Dark">
+                        <CardHeader>
+                            @item.CreationTime.ToString("dd/MM/yyyy HH:mm:ss")
+                        </CardHeader>
+                        <CardBody>
+                            <Text TextColor="TextColor.Success">+ @item.Amount</Text>
+                        </CardBody>
+                        <CardFooter>
+                            @item.Description
+                        </CardFooter>
+                    </Card>
+                </Row>
+            }
+            else
+            {
+                <Row>
+                    <Card TextColor="TextColor.White" Background="Background.Dark">
+                        <CardHeader>
+                            @item.CreationTime.ToString("dd/mm/yyyy HH:mm:ss")
+                        </CardHeader>
+                        <CardBody>
+                            <Text TextColor="TextColor.Danger">- @item.Amount</Text>
+                        </CardBody>
+                        <CardFooter>
+                            @item.Description
+                        </CardFooter>
+                    </Card>
+                </Row>
+            }
+            
+        }
+    </Column>
+    
+</Row>
+
+
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> Para çekiliyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Validations Model="@walletCommitDto" ValidateOnLoad="false">
+                <Validation>
+            <Field>
+                <FieldLabel>Çekilecek Tutar</FieldLabel>
+                <NumericEdit TValue="decimal" @bind-Value="walletCommitDto.Amount"></NumericEdit> Tl
+                 <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+            </Field>
+                </Validation>
+                <Validation>
+                    <Field>
+                        <FieldLabel>Açıklama</FieldLabel>
+                        <TextEdit @bind-Text="@walletCommitDto.Description">
+                            <Feedback>
+                                <ValidationError />
+                            </Feedback>
+                        </TextEdit>
+                    </Field>
+                </Validation>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => WalletCommit()">
+                    Çek
+                </Button>
+            </Column>
+            </Validations>
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+    private PagedAndSortedResultRequestDto Filter { get; set; } = new PagedAndSortedResultRequestDto();
+    private WalletDetailDto walletDetailDto = new WalletDetailDto();
+    private WalletCommitDto walletCommitDto = new WalletCommitDto();
+    private Modal modalRef;
+    protected override async Task OnInitializedAsync()
+    {
+        walletDetailDto = await _walletService.GetDetail(Id,Name);
+    }
+
+    private async Task WalletCommit()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{Name} isimli çalışanın cüzdanından {walletCommitDto.Amount} TL değerinde para çekilecek");
+            if (confirmed)
+            {
+                walletCommitDto.WalletId = walletDetailDto.WalletId;
+                walletCommitDto.IsPositive = false;
+                await _walletService.CommitToWallet(walletCommitDto);
+                walletDetailDto = await _walletService.GetDetail(Id, Name);
+                await modalRef.Close(CloseReason.None);
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        
+    } 
+    private async Task OpenModel()
+    {
+        walletCommitDto = new WalletCommitDto();
+        await modalRef.Show();
+    }
+}

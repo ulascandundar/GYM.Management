@@ -1,0 +1,105 @@
+﻿@page "/expensechart"
+@using Blazorise.Charts;
+@using GYM.Management.Expenses;
+@using GYM.Management.Localization;
+@using Microsoft.Extensions.Localization;
+@inherits ManagementComponentBase
+@inject IStringLocalizer<ManagementResource> L
+@inject IExpenseService _expenseService
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+            <FieldLabel>Başlangıç Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.StartDate" />
+        </Field>
+    </Column>
+
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+            <FieldLabel>Bitiş Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.EndDate" />
+        </Field>
+
+    </Column>
+    <Field>
+        <Button Color="Color.Primary" Clicked="() => HandleRedraw()">Filtrele</Button>
+    </Field>
+</Row>
+<Chart @ref="barChart" Type="ChartType.Bar" TItem="double" />
+@code {
+    Chart<double>? barChart;
+    ExpenseReportInputDto expenseReport = new ExpenseReportInputDto { StartDate = DateTime.Today.AddYears(-1), EndDate = DateTime.Today };
+    int expenseCount = 0;
+    decimal expenseSum = 0;
+    decimal salarySum = 0;
+    decimal spendingSum = 0;
+    decimal walletSum = 0;
+    decimal stockOrder = 0;
+    decimal stockLeak = 0;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await HandleRedraw();
+        }
+    }
+
+    private async Task HandleRedraw()
+    {
+        await barChart.Clear();
+        var datas = await GetBarChartDataset();
+        await barChart.AddLabelsDatasetsAndUpdate(Labels, datas);
+    }
+
+    private async Task<BarChartDataset<double>> GetBarChartDataset()
+    {
+        BarChartDataset<double> chart = new()
+            {
+                Label = "Gider",
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                BorderWidth = 1
+            };
+        chart.Data = await GetReports();
+        return chart;
+
+    }
+
+    string[] Labels = { "Standart Harcama", "Maaş Ödeme", "Cüzdandan Para Çekme", "Stok Siparişi", "Stok Sayımı" };
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f)};
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f)};
+
+    List<double> RandomizeData()
+    {
+        var r = new Random(DateTime.Now.Millisecond);
+
+        return new List<double> {
+            r.Next( 3, 50 ) * r.NextDouble(),
+            r.Next( 3, 50 ) * r.NextDouble(),
+            r.Next( 3, 50 ) * r.NextDouble(),
+            r.Next( 3, 50 ) * r.NextDouble(),
+            r.Next( 3, 50 ) * r.NextDouble(),
+            r.Next( 3, 50 ) * r.NextDouble() };
+    }
+    private async Task<List<double>>  GetReports()
+    {
+        var result = await _expenseService.GetReports(expenseReport);
+        expenseCount = result.Count;
+        expenseSum = result.Sum(o => o.Amount);
+        salarySum = result.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
+        spendingSum = result.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
+        walletSum = result.Where(o => o.ExpenseType == ExpenseType.Wallet).Sum(o => o.Amount);
+        stockOrder = result.Where(o => o.ExpenseType == ExpenseType.StockOrder).Sum(o => o.Amount);
+        stockLeak = result.Where(o => o.ExpenseType == ExpenseType.StockLeak).Sum(o => o.Amount);
+        return new List<double> { Decimal.ToDouble(spendingSum),
+            Decimal.ToDouble(salarySum), Decimal.ToDouble(walletSum), Decimal.ToDouble(stockOrder), Decimal.ToDouble(stockLeak) };
+
+    }
+    //Task OnClicked(ChartMouseEventArgs e)
+    //{
+    //    var model = e.Model as BarChartModel;
+    //    Message.Info($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
+    //    Console.WriteLine($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
+    //    return Task.CompletedTask;
+    //}
+}

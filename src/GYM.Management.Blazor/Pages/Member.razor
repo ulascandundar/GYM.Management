@@ -1,4 +1,5 @@
 ﻿@page "/Member"
+@attribute [Authorize(ManagementPermissions.Member.Default)]
 @using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
@@ -122,7 +123,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                            <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -181,7 +182,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                            <TextEdit onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57) || ((event.target.value + String.fromCharCode(charCode)).length>10" @bind-Text="@NewEntity.Telephone">
+                           <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -235,8 +236,6 @@
                             <TableRow>
                                 <TableHeaderCell>Ürün İsmi</TableHeaderCell>
                                 <TableHeaderCell>Fiyat</TableHeaderCell>
-                                <TableHeaderCell>Miktar</TableHeaderCell>
-                                <TableHeaderCell>Toplam Tutar</TableHeaderCell>
                                 <TableHeaderCell></TableHeaderCell>
                             </TableRow>
                         </TableHeader>
@@ -249,18 +248,18 @@
                                     <TableRow>
                                             <TableRowCell>@item.Name</TableRowCell>
                                             <TableRowCell>@item.BuyPrice</TableRowCell>
-                                            <TableRowCell>
+                                        @* <TableRowCell>
                                             <Field>
                                            <NumericEdit TValue="int" @bind-Value="item.Quantity" />
                                             </Field>                                            
                                             </TableRowCell>
                                             <TableRowCell>
                                             @calculateTotalPrice()
-                                            </TableRowCell>
+                                            </TableRowCell>*@
                                             <TableRowCell>
                                             <Column ColumnSize="ColumnSize.IsAuto">
                                                 <Button Color="Color.Primary"
-                                                Clicked="() => PlaceOrder(item)">
+                                                Clicked="() => OpenOrderModel(item)">
                                                     Sipariş Ver
                                                 </Button>
                                             </Column>
@@ -316,6 +315,47 @@
     </ModalContent>
 </Modal>
 
+<Modal @ref="productModalRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> @SelectedProduct.Name -- @SelectedProduct.BuyPrice TL</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Adet</FieldLabel>
+                <NumericPicker TValue="int" @bind-Value="SelectedProduct.Quantity"></NumericPicker>
+
+            </Field>
+            <Field>
+                <FieldLabel>Toplam Tutar</FieldLabel>
+                <Span>@(SelectedProduct.Quantity * SelectedProduct.BuyPrice) TL</Span>
+            </Field>
+            <Field>
+                <FieldLabel>Antenör Seçimi</FieldLabel>
+                <Select TValue="Guid?" @bind-SelectedValue="@SelectedProduct.TrainerId">
+                    @foreach (var item in TrainerList)
+                    {
+                        <SelectItem TValue="Guid" Value="@item.Id">
+                            @item.Name
+                        </SelectItem>
+                    }
+                </Select>
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => PlaceOrder(SelectedProduct)">
+                    Sat
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     @inject NavigationManager NavigationManager
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
@@ -329,8 +369,10 @@
     private Guid SelectedId;
     private string selectedName;
     private Modal modalRef;
+    private Modal productModalRef;
     private Modal stockModelRef;
     private MemberOrderAppointmentCreateDto appointmentDto { get; set; } = new MemberOrderAppointmentCreateDto();
+    private ProductDto SelectedProduct = new ProductDto();
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -373,7 +415,7 @@
         MemberList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
-
+    [Authorize(ManagementPermissions.Member.Delete)]
     private async Task DeleteData(MemberDto dto)
     {
         try
@@ -389,6 +431,7 @@
             await HandleErrorAsync(ex);
         }
     }
+        [Authorize(ManagementPermissions.Member.AddProduct)]
     private async Task OpenProductModel(Guid id,string memberName)
     {
         try
@@ -403,6 +446,7 @@
             await HandleErrorAsync(ex);
         }
     }
+    [Authorize(ManagementPermissions.Member.AddAppointment)]
     private async Task OpenStockModel(Guid id, string memberName)
     {
         try
@@ -421,7 +465,7 @@
     {
         NavigationManager.NavigateTo($"/memberevent/{id}", true);
     }
-
+    [Authorize(ManagementPermissions.Member.Create)]
     private async Task AddData()
     {
         try
@@ -449,7 +493,7 @@
             await HandleErrorAsync(ex);
         }
     }
-
+    [Authorize(ManagementPermissions.Member.Edit)]
     private async Task EditData()
     {
         try
@@ -475,21 +519,38 @@
             await HandleErrorAsync(ex);
         }
     }
-
+        [Authorize(ManagementPermissions.Member.AddProduct)]
     private async Task PlaceOrder(ProductDto dto)
     {
-        var confirmed = await Message.Confirm($"{dto.Quantity} adet {dto.Name} satmak istediğinize eminmisiniz ?");
-        if (confirmed)
+        try
         {
-            await _memberOrderService.PlaceOrder(dto, SelectedId);
-            dto.Quantity = 0;
-            await Message.Success("Satış tamamlandı");
-            var result = await _memberService.GetListAsync(Filter);
-            MemberList = result.Items;
-            TotalCount = (int)result.TotalCount;
+            var confirmed = await Message.Confirm($"{dto.Quantity} adet {dto.Name} satmak istediğinize eminmisiniz ?");
+            if (confirmed)
+            {
+                await _memberOrderService.PlaceOrder(dto, SelectedId);
+                dto.Quantity = 0;
+                await Message.Success("Satış tamamlandı");
+                var result = await _memberService.GetListAsync(Filter);
+                MemberList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await productModalRef.Close(CloseReason.None);
+            }
         }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        
     }
-
+    [Authorize(ManagementPermissions.Member.AddProduct)]
+    private async Task OpenOrderModel(ProductDto dto)
+    {
+        SelectedProduct = dto;
+        SelectedProduct.TrainerId = TrainerList.FirstOrDefault().Id;
+        await productModalRef.Show();
+        await modalRef.Close(CloseReason.None);
+    }
+    [Authorize(ManagementPermissions.Member.AddAppointment)]
     private async Task PlaceOrderStock(MemberOrderAppointmentCreateDto dto)
     {
         var confirmed = await Message.Confirm($"{selectedName} isimli üyeye {dto.UnitPrice * dto.AppointmentStock} TL değerinde {dto.AppointmentStock} adet randevu tanımlanacak");

@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Permissions;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,8 @@ namespace GYM.Management.Exercises
 		ExercisCreateDto>, 
 	IExerciseService
 	{
-		public ExerciseService(IRepository<Exercise, Guid> repository)
+        private readonly IExerciseRepository _exerciseRepository;
+		public ExerciseService(IRepository<Exercise, Guid> repository, IExerciseRepository exerciseRepository)
 		 : base(repository)
 		{
             GetPolicyName = ManagementPermissions.Exercise.Default;
@@ -30,6 +32,7 @@ namespace GYM.Management.Exercises
             CreatePolicyName = ManagementPermissions.Exercise.Create;
             UpdatePolicyName = ManagementPermissions.Exercise.Edit;
             DeletePolicyName = ManagementPermissions.Exercise.Delete;
+            _exerciseRepository = exerciseRepository;
         }
 
 		public Task<List<ExerciseDto>> GetAllExercisesAsync()
@@ -72,6 +75,11 @@ namespace GYM.Management.Exercises
                 throw new UserFriendlyException("Aynı isimde ürün zaten var", "Aynı isimde ürün zaten var");
             }
             return true;
+        }
+        [Authorize(ManagementPermissions.Category.Delete)]
+        public async Task RemoveAsync(Guid id)
+        {
+            await _exerciseRepository.RemoveAsync(id);
         }
     }
 }

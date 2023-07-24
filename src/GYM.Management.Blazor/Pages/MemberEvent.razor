@@ -1,6 +1,8 @@
 ﻿@page "/memberevent/{Id:guid}"
+@attribute [Authorize(ManagementPermissions.Member.History)]
 @using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
+@using GYM.Management.Permissions;
 @using Volo.Abp.Application.Dtos;
 @inherits AbpCrudPageBase<IMemberOrderService, MemberOrderDto, Guid, PagedAndSortedResultRequestDto, MemberOrderCreateDto>
 @inject IMemberOrderService _memberOrderService
@@ -116,7 +118,6 @@
         memberOrderList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
-
     private async Task OpenGainModel()
     {
         try

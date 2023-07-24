@@ -211,6 +211,7 @@
         ExerciseList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
+    [Authorize(ManagementPermissions.Exercise.Create)]
     private async Task AddData()
     {
         try
@@ -244,6 +245,7 @@
 
 
     }
+    [Authorize(ManagementPermissions.Exercise.Edit)]
     private async Task EditData()
     {
         try
@@ -273,7 +275,7 @@
     {
         try
         {
-            await _exerciseService.DeleteAsync(dto.Id);
+            await _exerciseService.RemoveAsync(dto.Id);
             var result = await _exerciseService.GetListAsync(Filter);
             ExerciseList = result.Items;
             TotalCount = (int)result.TotalCount;
