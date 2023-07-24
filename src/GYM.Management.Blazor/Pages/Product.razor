@@ -1,6 +1,7 @@
 ﻿@page "/product"
 @attribute [Authorize(ManagementPermissions.Product.Default)]
 @using GYM.Management.Localization;
+@using GYM.Management.Losses;
 @using GYM.Management.Permissions;
 @using GYM.Management.Products;
 @using GYM.Management.StockTakings;
@@ -49,6 +50,10 @@
                             <EntityAction TItem="ProductDto"
                                           Text="Stok Siparişi"
                                           Clicked="() => OpenStockOrder(context)" />
+
+                            <EntityAction TItem="ProductDto"
+                                          Text="Zaiyat Girişi"
+                                          Clicked="() => OpenLoss(context)" />
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
@@ -270,6 +275,37 @@
         </ModalFooter>
     </ModalContent>
 </Modal>
+
+<Modal @ref="modalLossRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> (@selectedProductName) Zaiyat Ekleniyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Zaiyat Adedi</FieldLabel>
+                <NumericPicker TValue="int" @bind-Value="lossCreateDto.Quantity"></NumericPicker>
+
+            </Field>
+            <Field>
+                <FieldLabel>Açıklama</FieldLabel>
+                <TextEdit @bind-Text="lossCreateDto.Description"></TextEdit>
+
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => LossCreate()">
+                    Ekle
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
     public Product()
     {
@@ -279,8 +315,10 @@
     }
     private Modal modalRef;
     private Modal modalStockOrderRef;
+    private Modal modalLossRef;
     StockTakingCreateDto stockTakingCreateDto = new StockTakingCreateDto();
     StockOrderCreateDto stockOrderCreateDto = new StockOrderCreateDto();
+    LossCreateDto lossCreateDto = new LossCreateDto();
     private string selectedProductName = "";
     private async Task OpenStockTaking(ProductDto dto)
     {
@@ -292,6 +330,13 @@
         stockOrderCreateDto = new StockOrderCreateDto { ProductId = dto.Id,StockBuyPrice = dto.StockPrice };
         selectedProductName = dto.Name;
         await modalStockOrderRef.Show();
+    }
+
+    private async Task OpenLoss(ProductDto dto)
+    {
+        lossCreateDto = new LossCreateDto { ProductId = dto.Id};
+        selectedProductName = dto.Name;
+        await modalLossRef.Show();
     }
 
     private async Task StockTaking()
@@ -329,17 +374,30 @@
         }
     }
 
+    private async Task LossCreate()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{lossCreateDto.Quantity} adet {selectedProductName} zaiyatı eklemek istediğinize eminmisiniz ?");
+            if (confirmed)
+            {
+                await _productService.CreateLoss(lossCreateDto);
+                await modalLossRef.Close(CloseReason.None);
+                await OnCreatedEntityAsync();
+                await Message.Success("Zaiyat Tamamlandı");
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
     private async Task CreateEntityAsync()
     {
         try
         {
             var validate = true;
-            if (CreateValidationsRef != null)
-            {
-                validate = await CreateValidationsRef.ValidateAll();
-            }
-            if (validate)
-            {
                 await OnCreatingEntityAsync();
 
                 await CheckCreatePolicyAsync();
@@ -347,7 +405,7 @@
                 await AppService.CreateAsync(createInput);
                 await OnCreatedEntityAsync();
                 await Message.Success("Yeni Ürün Eklendi");
-            }
+            
         }
         catch (Exception ex)
         {

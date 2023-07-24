@@ -3,6 +3,7 @@ using GYM.Management.ExerciseCategories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
 using GYM.Management.Gains;
+using GYM.Management.Losses;
 using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
@@ -76,6 +77,7 @@ public class ManagementDbContext :
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<StockTaking> StockTakings { get; set; }
+    public DbSet<Loss> Losses { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {

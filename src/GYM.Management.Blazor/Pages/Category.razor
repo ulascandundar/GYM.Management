@@ -242,6 +242,7 @@
     private Modal modalRef;
     CategoryWithExercises categoryWithExercises = new CategoryWithExercises();
     List<ExerciseDto> withouts = new List<ExerciseDto>();
+    [Authorize(ManagementPermissions.Category.Edit)]
     private async Task ShowModal(Guid id)
     {
         categoryWithExercises = await _service.GetExercisesByCategoryId(id);
@@ -249,6 +250,7 @@
         withouts = withouts.Where(o => !categoryWithExercises.ExerciseDtos.Any(a => a.Id == o.Id)).ToList();
         await modalRef.Show();
     }
+    [Authorize(ManagementPermissions.Category.Edit)]
     private async Task IncludeExercise(Guid categoryId, Guid exerciseId)
     {
         var data = withouts.Where(o=>o.Id == exerciseId).FirstOrDefault();
@@ -256,6 +258,7 @@
         withouts.Remove(data);
         await _exerciseCategoryService.AddExerciseCategory(categoryId, exerciseId);
     }
+    [Authorize(ManagementPermissions.Category.Edit)]
     private async Task Remove(Guid categoryId, Guid exerciseId)
     {
         var confirmed = await Message.Confirm("Kaldırmak istediğine eminmisin ?");

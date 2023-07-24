@@ -32,6 +32,10 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         productPermission.AddChild(ManagementPermissions.Product.StockOrder, L("Permission:Product.StockOrder"));
         productPermission.AddChild(ManagementPermissions.Product.StockTaking, L("Permission:Product.StockTaking"));
         productPermission.AddChild(ManagementPermissions.Product.StockTakingHistory, L("Permission:Product.StockTakingHistory"));
+		productPermission.AddChild(ManagementPermissions.Product.StockOrderHistory, L("Permission:Product.StockOrderHistory"));
+        productPermission.AddChild(ManagementPermissions.Product.StockLossCreate, L("Permission:Product.StockLossCreate"));
+        productPermission.AddChild(ManagementPermissions.Product.StockLossHistory, L("Permission:Product.StockLossHistory"));
+
 
         var walletPermission = myGroup.AddPermission(ManagementPermissions.Wallet.Default, L("Permission:Wallet"));
         walletPermission.AddChild(ManagementPermissions.Wallet.Edit, L("Permission:Wallet.Edit"));
@@ -44,6 +48,11 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         memberPermission.AddChild(ManagementPermissions.Member.AddAppointment, L("Permission:Member.AddAppointment"));
         memberPermission.AddChild(ManagementPermissions.Member.History, L("Permission:Member.History"));
         memberPermission.AddChild(ManagementPermissions.Member.Pay, L("Permission:Member.Pay"));
+
+        var expensePermission = myGroup.AddPermission(ManagementPermissions.Expense.Default, L("Permission:Expense"));
+        expensePermission.AddChild(ManagementPermissions.Expense.Create, L("Permission:Expense.Create"));
+        expensePermission.AddChild(ManagementPermissions.Expense.Edit, L("Permission:Expense.Edit"));
+        expensePermission.AddChild(ManagementPermissions.Expense.Delete, L("Permission:Expense.Delete"));
     }
 
     private static LocalizableString L(string name)

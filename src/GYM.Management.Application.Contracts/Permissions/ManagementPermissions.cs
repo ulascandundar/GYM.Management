@@ -39,6 +39,10 @@ public static class ManagementPermissions
         public const string StockOrder = Default + ".StockOrder";
         public const string StockTaking = Default + ".StockTaking";
         public const string StockTakingHistory = Default + ".StockTakingHistory";
+		public const string StockOrderHistory = Default + ".StockOrderHistory";
+        public const string StockLossCreate = Default + ".StockLossCreate";
+        public const string StockLossHistory = Default + ".StockLossHistory";
+
     }
     public static class Wallet
     {
@@ -56,5 +60,13 @@ public static class ManagementPermissions
         public const string AddAppointment = Default + ".AddAppointment";
         public const string History = Default + ".History";
         public const string Pay = Default + ".Pay";
+    }
+
+    public static class Expense
+    {
+        public const string Default = GroupName + ".Expense";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
     }
 }

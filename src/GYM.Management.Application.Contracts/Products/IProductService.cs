@@ -1,4 +1,5 @@
-﻿using GYM.Management.StockTakings;
+﻿using GYM.Management.Losses;
+using GYM.Management.StockTakings;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,5 +13,6 @@ namespace GYM.Management.Products
     {
         Task StockTaking(StockTakingCreateDto dto);
         Task StockOrder(StockOrderCreateDto stockOrderCreateDto);
+        Task CreateLoss(LossCreateDto createLossDto);
     }
 }

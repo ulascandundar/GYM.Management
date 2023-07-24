@@ -48,7 +48,10 @@ namespace GYM.Management.MemberOrders
 		{
             var trainer = await _trainerRepository.GetAsync((Guid)productDto.TrainerId);
 			var product = await _productRepository.GetAsync(o=>o.Id == productDto.Id);
-			var memberOrder = await _memberOrderRepository.InsertAsync(new MemberOrder
+            if (product.Stock < productDto.Quantity) throw new UserFriendlyException ("Yeterli stok bulunmamakta. Stok sayımı yapınız yada stok siparişi geçiniz.", "Yeterli stok bulunmamakta. Stok sayımı yapınız yada stok siparişi geçiniz.");
+			product.Stock -= productDto.Quantity;
+            await _productRepository.UpdateAsync(product);
+            var memberOrder = await _memberOrderRepository.InsertAsync(new MemberOrder
 			{
 				ProductId = productDto.Id,
 				TotalPrice = productDto.Quantity * product.BuyPrice,

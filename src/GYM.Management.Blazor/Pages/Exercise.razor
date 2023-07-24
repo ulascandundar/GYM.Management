@@ -211,6 +211,7 @@
         ExerciseList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
+    [Authorize(ManagementPermissions.Exercise.Create)]
     private async Task AddData()
     {
         try
@@ -244,6 +245,7 @@
 
 
     }
+    [Authorize(ManagementPermissions.Exercise.Edit)]
     private async Task EditData()
     {
         try

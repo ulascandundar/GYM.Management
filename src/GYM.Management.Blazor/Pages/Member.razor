@@ -324,7 +324,7 @@
         <ModalBody>
             <Field>
                 <FieldLabel>Adet</FieldLabel>
-                <NumericPicker TValue="int" @bind-Value="SelectedProduct.Quantity"></NumericPicker> TL
+                <NumericPicker TValue="int" @bind-Value="SelectedProduct.Quantity"></NumericPicker>
 
             </Field>
             <Field>
@@ -415,7 +415,7 @@
         MemberList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
-
+    [Authorize(ManagementPermissions.Member.Delete)]
     private async Task DeleteData(MemberDto dto)
     {
         try
@@ -431,6 +431,7 @@
             await HandleErrorAsync(ex);
         }
     }
+        [Authorize(ManagementPermissions.Member.AddProduct)]
     private async Task OpenProductModel(Guid id,string memberName)
     {
         try
@@ -445,6 +446,7 @@
             await HandleErrorAsync(ex);
         }
     }
+    [Authorize(ManagementPermissions.Member.AddAppointment)]
     private async Task OpenStockModel(Guid id, string memberName)
     {
         try
@@ -463,7 +465,7 @@
     {
         NavigationManager.NavigateTo($"/memberevent/{id}", true);
     }
-
+    [Authorize(ManagementPermissions.Member.Create)]
     private async Task AddData()
     {
         try
@@ -491,7 +493,7 @@
             await HandleErrorAsync(ex);
         }
     }
-
+    [Authorize(ManagementPermissions.Member.Edit)]
     private async Task EditData()
     {
         try
@@ -517,22 +519,30 @@
             await HandleErrorAsync(ex);
         }
     }
-
+        [Authorize(ManagementPermissions.Member.AddProduct)]
     private async Task PlaceOrder(ProductDto dto)
     {
-        var confirmed = await Message.Confirm($"{dto.Quantity} adet {dto.Name} satmak istediğinize eminmisiniz ?");
-        if (confirmed)
+        try
         {
-            await _memberOrderService.PlaceOrder(dto, SelectedId);
-            dto.Quantity = 0;
-            await Message.Success("Satış tamamlandı");
-            var result = await _memberService.GetListAsync(Filter);
-            MemberList = result.Items;
-            TotalCount = (int)result.TotalCount;
-            productModalRef.Close(CloseReason.None);
+            var confirmed = await Message.Confirm($"{dto.Quantity} adet {dto.Name} satmak istediğinize eminmisiniz ?");
+            if (confirmed)
+            {
+                await _memberOrderService.PlaceOrder(dto, SelectedId);
+                dto.Quantity = 0;
+                await Message.Success("Satış tamamlandı");
+                var result = await _memberService.GetListAsync(Filter);
+                MemberList = result.Items;
+                TotalCount = (int)result.TotalCount;
+                await productModalRef.Close(CloseReason.None);
+            }
         }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        
     }
-
+    [Authorize(ManagementPermissions.Member.AddProduct)]
     private async Task OpenOrderModel(ProductDto dto)
     {
         SelectedProduct = dto;
@@ -540,7 +550,7 @@
         await productModalRef.Show();
         await modalRef.Close(CloseReason.None);
     }
-
+    [Authorize(ManagementPermissions.Member.AddAppointment)]
     private async Task PlaceOrderStock(MemberOrderAppointmentCreateDto dto)
     {
         var confirmed = await Message.Confirm($"{selectedName} isimli üyeye {dto.UnitPrice * dto.AppointmentStock} TL değerinde {dto.AppointmentStock} adet randevu tanımlanacak");

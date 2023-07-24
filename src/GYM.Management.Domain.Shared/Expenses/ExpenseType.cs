@@ -10,6 +10,7 @@ namespace GYM.Management.Expenses
         Salary = 1,
         Wallet = 2,
         StockOrder= 3,
-        StockLeak =4
+        StockLeak =4,
+        Loss = 5
     }
 }

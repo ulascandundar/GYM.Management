@@ -1,5 +1,7 @@
 ﻿@page "/expense"
+@attribute [Authorize(ManagementPermissions.Expense.Default)]
 @using GYM.Management.Expenses;
+@using GYM.Management.Permissions;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
 @using GYM.Management.Localization
@@ -218,7 +220,7 @@
         ExpenseList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
-
+    [Authorize(ManagementPermissions.Expense.Create)]
     private async Task AddData()
     {
         try
@@ -246,6 +248,7 @@
             await HandleErrorAsync(ex);
         }
     }
+    [Authorize(ManagementPermissions.Exercise.Edit)]
     private async Task EditData()
     {
         try
@@ -271,7 +274,7 @@
             await HandleErrorAsync(ex);
         }
     }
-
+    [Authorize(ManagementPermissions.Exercise.Delete)]
     private async Task DeleteData(ExpenseDto dto)
     {
         try

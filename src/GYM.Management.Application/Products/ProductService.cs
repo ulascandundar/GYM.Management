@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.Losses;
 using GYM.Management.Permissions;
 using GYM.Management.StockTakings;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -23,7 +25,9 @@ namespace GYM.Management.Products
     {
         private readonly IStockTakingRepository _stockTakingRepository;
         private readonly IExpenseRepository _expenseRepository;
-        public ProductService(IRepository<Product, Guid> repository, IStockTakingRepository stockTakingRepository, IExpenseRepository expenseRepository) : base(repository)
+        private readonly ILossRepository _lossRepository;
+        public ProductService(IRepository<Product, Guid> repository, IStockTakingRepository stockTakingRepository, IExpenseRepository expenseRepository,
+			ILossRepository lossRepository) : base(repository)
         {
             GetPolicyName = ManagementPermissions.Product.Default;
             GetListPolicyName = ManagementPermissions.Product.Default;
@@ -32,6 +36,7 @@ namespace GYM.Management.Products
             DeletePolicyName = ManagementPermissions.Product.Delete;
             _stockTakingRepository= stockTakingRepository;
             _expenseRepository= expenseRepository;
+            _lossRepository= lossRepository;
         }
         [Authorize(ManagementPermissions.Product.StockTaking)]
         public async Task StockTaking(StockTakingCreateDto dto)
@@ -61,6 +66,19 @@ namespace GYM.Management.Products
                 ExpenseType = ExpenseType.StockOrder
             });
             await Repository.UpdateAsync(product);
+        }
+        [Authorize(ManagementPermissions.Product.StockLossCreate)]
+        public async Task CreateLoss(LossCreateDto createLossDto)
+        {
+            var product = await Repository.GetAsync(createLossDto.ProductId);
+            if (product.Stock < createLossDto.Quantity) throw new UserFriendlyException("Zaiyat sayısı stok sayısını geçemez.", "Zaiyat sayısı stok sayısını geçemez.");
+            Loss loss = ObjectMapper.Map<LossCreateDto,Loss>(createLossDto);
+            loss.ProductName = product.Name;
+            await _lossRepository.InsertAsync(loss);
+            product.Stock -= createLossDto.Quantity;
+            await Repository.UpdateAsync(product);
+            await _expenseRepository.InsertAsync(new Expense { Description = $"{product.Name} isimli üründen {createLossDto.Quantity} adet zaiyat kaydedildi. {createLossDto.Description}",
+            Amount = product.BuyPrice * createLossDto.Quantity,ExpenseType = ExpenseType.Loss});
         }
     }
 }

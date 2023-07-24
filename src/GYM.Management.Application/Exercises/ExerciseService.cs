@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Permissions;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,6 +76,7 @@ namespace GYM.Management.Exercises
             }
             return true;
         }
+        [Authorize(ManagementPermissions.Category.Delete)]
         public async Task RemoveAsync(Guid id)
         {
             await _exerciseRepository.RemoveAsync(id);
