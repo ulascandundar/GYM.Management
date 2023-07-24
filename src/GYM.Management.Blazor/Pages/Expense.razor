@@ -25,12 +25,40 @@
     </CardHeader>
     <CardBody>
         <div id="UserFilterSection" class="row mt-3">
-            <Column ColumnSize="ColumnSize.Is12">
+            <Column ColumnSize="ColumnSize.Is6">
                 <Field>
                     <FieldLabel>Açıklama Filtresi</FieldLabel>
                     <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Description" />
                 </Field>
             </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>Gider Tipi</FieldLabel>
+                    <Select TValue="ExpenseType?" @bind-SelectedValue="@Filter.ExpenseType">
+                        <SelectItem></SelectItem>
+                        <SelectItem Value="ExpenseType.Spending"> @L[$"Enum:ExpenseType.0"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Salary"> @L[$"Enum:ExpenseType.1"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Wallet"> @L[$"Enum:ExpenseType.2"]</SelectItem>
+                        <SelectItem Value="ExpenseType.StockOrder"> @L[$"Enum:ExpenseType.3"]</SelectItem>
+                        <SelectItem Value="ExpenseType.StockLeak"> @L[$"Enum:ExpenseType.4"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Loss"> @L[$"Enum:ExpenseType.5"]</SelectItem>
+                    </Select>
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Başlangıç Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.StartDate"></InputDate>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Sonlanma Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.EndDate"></InputDate>
+            </Column>
+            <Field>
+                <Button Color="Color.Primary"
+                        Clicked="() => Refresh()">
+                    Filtrele
+                </Button>
+            </Field>
         </div>
         <DataGrid TItem="ExpenseDto"
                   Data="ExpenseList"
@@ -289,5 +317,12 @@
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task Refresh()
+    {
+        var result = await _expenseService.GetListAsync(Filter);
+        ExpenseList = result.Items;
+        TotalCount = (int)result.TotalCount;
     }
 }

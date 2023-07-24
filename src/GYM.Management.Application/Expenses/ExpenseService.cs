@@ -36,6 +36,18 @@ namespace GYM.Management.Expenses
                 input.Description = input.Description.ToLower();
                 query = query.Where(o => o.Description.ToLower().Contains(input.Description));
             }
+            if (input.ExpenseType!=null)
+            {
+                query = query.Where(o => o.ExpenseType == input.ExpenseType);
+            }
+            if (input.StartDate.HasValue)
+            {
+                query = query.Where(o => o.CreationTime >= input.StartDate);
+            }
+            if (input.EndDate.HasValue)
+            {
+                query = query.Where(o => o.CreationTime <= input.StartDate);
+            }
             var totalCount = await AsyncExecuter.CountAsync(query);
             query = query.OrderBy(string.IsNullOrWhiteSpace(input.Sorting)
                 ? "CreationTime desc"
