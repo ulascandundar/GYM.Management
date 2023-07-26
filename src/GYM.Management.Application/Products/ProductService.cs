@@ -1,6 +1,7 @@
 ﻿using GYM.Management.Expenses;
 using GYM.Management.Losses;
 using GYM.Management.Permissions;
+using GYM.Management.Safes;
 using GYM.Management.StockTakings;
 using Microsoft.AspNetCore.Authorization;
 using System;
@@ -26,8 +27,9 @@ namespace GYM.Management.Products
         private readonly IStockTakingRepository _stockTakingRepository;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILossRepository _lossRepository;
+        private readonly ISafeRepository _safeRepository;
         public ProductService(IRepository<Product, Guid> repository, IStockTakingRepository stockTakingRepository, IExpenseRepository expenseRepository,
-			ILossRepository lossRepository) : base(repository)
+			ILossRepository lossRepository, ISafeRepository safeRepository) : base(repository)
         {
             GetPolicyName = ManagementPermissions.Product.Default;
             GetListPolicyName = ManagementPermissions.Product.Default;
@@ -37,6 +39,7 @@ namespace GYM.Management.Products
             _stockTakingRepository= stockTakingRepository;
             _expenseRepository= expenseRepository;
             _lossRepository= lossRepository;
+            _safeRepository= safeRepository;
         }
         [Authorize(ManagementPermissions.Product.StockTaking)]
         public async Task StockTaking(StockTakingCreateDto dto)
@@ -65,6 +68,8 @@ namespace GYM.Management.Products
                 Date = DateTime.UtcNow,
                 ExpenseType = ExpenseType.StockOrder
             });
+            await _safeRepository.NegativeCommit(product.StockPrice * stockOrderCreateDto.Quantity
+                , stockOrderCreateDto.Description + $" {product.Name} isimli üründen {stockOrderCreateDto.Quantity} adet sipariş edildi");
             await Repository.UpdateAsync(product);
         }
         [Authorize(ManagementPermissions.Product.StockLossCreate)]

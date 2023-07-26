@@ -6,6 +6,7 @@ using GYM.Management.Losses;
 using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
+using GYM.Management.SafeTransactions;
 using GYM.Management.StockTakings;
 using GYM.Management.Trainers;
 
@@ -54,5 +55,9 @@ public class ManagementApplicationAutoMapperProfile : Profile
 		CreateMap<Loss, LossDto>().ReverseMap();
 		CreateMap<Loss, LossCreateDto>().ReverseMap();
 		CreateMap<LossDto, LossCreateDto>().ReverseMap();
-	}
+
+        CreateMap<SafeTransaction, SafeTransactionDto>().ReverseMap();
+        CreateMap<SafeTransaction, SafeTransactionDto>().ReverseMap();
+        CreateMap<SafeTransactionDto, SafeTransactionCreateDto>().ReverseMap();
+    }
 }

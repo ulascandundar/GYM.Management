@@ -1,5 +1,7 @@
 ﻿using GYM.Management.Expenses;
 using GYM.Management.Permissions;
+using GYM.Management.Safes;
+using GYM.Management.SafeTransactions;
 using GYM.Management.WalletTransactions;
 using Microsoft.AspNetCore.Authorization;
 using System;
@@ -18,11 +20,16 @@ namespace GYM.Management.Wallets
         private readonly IWalletRepository _walletRepository;
         private readonly IWalletTransactionRepository _walletTransactionRepository;
         private readonly IExpenseRepository _expenseRepository;
-        public WalletService(IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, IExpenseRepository expenseRepository)
+        private readonly ISafeRepository _safeRepository;
+        private readonly ISafeTransactionRepository _safeTransactionRepository;
+        public WalletService(IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository,
+            IExpenseRepository expenseRepository, ISafeRepository safeRepository,ISafeTransactionRepository safeTransactionRepository)
         {
             _walletRepository = walletRepository;
             _walletTransactionRepository = walletTransactionRepository;
             _expenseRepository = expenseRepository;
+            _safeRepository = safeRepository;
+            _safeTransactionRepository = safeTransactionRepository;
         }
         [Authorize(ManagementPermissions.Wallet.Edit)]
         public async Task CommitToWallet(WalletCommitDto walletCommitDto)
@@ -42,6 +49,7 @@ namespace GYM.Management.Wallets
             }
             await _expenseRepository.InsertAsync(new Expense { Amount= walletCommitDto.Amount,Date = DateTime.UtcNow,ExpenseType= ExpenseType.Wallet
             ,Description = $"Cüzdandan para çekildi",TrainerId = wallet.TrainerId});
+            await _safeRepository.NegativeCommit(walletCommitDto.Amount,$"{wallet.Trainer.Name} isimli antrenörün cüzdanından para çekildi");
             await _walletRepository.UpdateAsync(wallet);
             await _walletTransactionRepository.InsertAsync(new WalletTransaction { Amount= walletCommitDto.Amount,IsPositive=walletCommitDto.IsPositive,
                 WalletId=walletCommitDto.WalletId, Description = walletCommitDto.Description });

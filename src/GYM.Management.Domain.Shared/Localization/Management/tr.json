@@ -40,6 +40,7 @@
     "Permission:Expense.Create": "Gider oluşturma",
     "Permission:Expense.Edit": "Gider güncelleme",
     "Permission:Expense.Delete": "Gider silme",
+    "Permission:Safe": "Kasa yönetimi",
     "Enum:ExpenseType.0": "Standart Harcama",
     "Enum:ExpenseType.1": "Maaş Ödeme",
     "Enum:ExpenseType.2": "Cüzdandan Para Çekme",

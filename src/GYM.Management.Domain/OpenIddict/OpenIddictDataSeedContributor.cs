@@ -53,7 +53,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     public virtual async Task SeedAsync(DataSeedContext context)
     {
         await CreateScopesAsync();
-        await CreateApplicationsAsync();
+        await   CreateApplicationsAsync();
     }
 
     private async Task CreateScopesAsync()

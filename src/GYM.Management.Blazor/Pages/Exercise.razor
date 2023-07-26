@@ -201,16 +201,16 @@
             TotalCount = (int)result.TotalCount;
         }
     }
-    protected override async Task OnInitializedAsync()
-    {
-        //var result = await _exerciseService.GetListAsync(Filter);
-        Filter.MaxResultCount = PageSize;
-        Filter.SkipCount =0;
-        Filter.Sorting = CurrentSorting;
-        var result = await _exerciseService.GetListAsync(Filter);
-        ExerciseList = result.Items;
-        TotalCount = (int)result.TotalCount;
-    }
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //var result = await _exerciseService.GetListAsync(Filter);
+    //    Filter.MaxResultCount = PageSize;
+    //    Filter.SkipCount =0;
+    //    Filter.Sorting = CurrentSorting;
+    //    var result = await _exerciseService.GetListAsync(Filter);
+    //    ExerciseList = result.Items;
+    //    TotalCount = (int)result.TotalCount;
+    //}
     [Authorize(ManagementPermissions.Exercise.Create)]
     private async Task AddData()
     {

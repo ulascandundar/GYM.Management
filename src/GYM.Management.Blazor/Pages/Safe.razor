@@ -1,0 +1,101 @@
+﻿@page "/safe"
+@attribute [Authorize(ManagementPermissions.Safe.Default)]
+@using GYM.Management.Permissions;
+@using GYM.Management.SafeTransactions;
+@using GYM.Management.Safes;
+@using Volo.Abp.Application.Dtos;
+@inherits AbpCrudPageBase<ISafeTransactionService, SafeTransactionDto, Guid, PagedAndSortedResultRequestDto, SafeTransactionCreateDto>
+@inject ISafeService _safeService
+<Card Background="Background.Success" WhiteText>
+    
+    <CardBody>
+        <CardTitle Size="3">
+            Bakiye
+        </CardTitle>
+        <CardText>
+           @balance TL
+        </CardText>
+    </CardBody>
+</Card>
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+          
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="SafeTransactionDto"
+                  Data="Entities"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+              @*  <DataGridEntityActionsColumn TItem="SafeTransactionDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="SafeTransactionDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Güncelle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Sil"
+                                          Clicked="() => DeleteEntityAsync(context)"
+                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                            <EntityAction TItem="CategoryDto"
+                                          Text="Egzersizleri düzenle"
+                                          Clicked="() => ShowModal(context.Id)" />
+
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>*@
+                
+                <DataGridColumn TItem="SafeTransactionDto"
+                                Field="@nameof(SafeTransactionDto.Amount)"
+                                Caption="Tutar">
+                    <DisplayTemplate>
+                        @if (context.IsPositive)
+                        {
+                            <text>
+                                <Text TextColor="TextColor.Success">
+                                    + @context.Amount TL
+                                </Text>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                <Text TextColor="TextColor.Danger">
+                                    - @context.Amount TL
+                                </Text>
+                            </text>
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="SafeTransactionDto"
+                                Field="@nameof(SafeTransactionDto.Description)"
+                                Caption="Açıklama"></DataGridColumn>
+                <DataGridColumn TItem="SafeTransactionDto"
+                                Field="@nameof(SafeTransactionDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@code {
+    private decimal balance = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        balance = await _safeService.GetBalance();
+        ////var result = await _exerciseService.GetListAsync(Filter);
+        //Filter.MaxResultCount = PageSize;
+        //Filter.SkipCount = 0;
+        //Filter.Sorting = CurrentSorting;
+        //var result = await _exerciseService.GetListAsync(Filter);
+        //ExerciseList = result.Items;
+        //TotalCount = (int)result.TotalCount;
+    }
+}

@@ -7,6 +7,8 @@ using GYM.Management.Losses;
 using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
+using GYM.Management.Safes;
+using GYM.Management.SafeTransactions;
 using GYM.Management.StockTakings;
 using GYM.Management.Trainers;
 using GYM.Management.Wallets;
@@ -78,6 +80,8 @@ public class ManagementDbContext :
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<StockTaking> StockTakings { get; set; }
     public DbSet<Loss> Losses { get; set; }
+    public DbSet<Safe> Safes { get; set; }
+    public DbSet<SafeTransaction> SafeTransactions  { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {

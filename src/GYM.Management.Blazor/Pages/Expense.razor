@@ -87,6 +87,9 @@
                 <DataGridColumn TItem="ExpenseDto"
                                 Field="@nameof(ExpenseDto.Amount)"
                                 Caption="Tutar">
+                                <DisplayTemplate>
+                                    @context.Amount TL
+                                </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn TItem="ExpenseDto"
                                 Field="@nameof(ExpenseDto.Description)"

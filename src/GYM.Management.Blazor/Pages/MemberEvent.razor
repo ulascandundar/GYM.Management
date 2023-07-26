@@ -35,7 +35,7 @@
                   ShowPager="true"
                   PageSize="PageSize">
             <DataGridColumns>
-                <DataGridEntityActionsColumn TItem="MemberOrderDto" @ref="@EntityActionsColumn">
+               @* <DataGridEntityActionsColumn TItem="MemberOrderDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
                         <EntityActions TItem="MemberOrderDto" EntityActionsColumn="@EntityActionsColumn">
                            
@@ -45,7 +45,7 @@
                            
                         </EntityActions>
                     </DisplayTemplate>
-                </DataGridEntityActionsColumn>
+                </DataGridEntityActionsColumn>*@
                 <DataGridColumn TItem="MemberOrderDto"
                                 Field="@nameof(MemberOrderDto.CreationTime)"
                                 Caption="Eklenme Tarihi">

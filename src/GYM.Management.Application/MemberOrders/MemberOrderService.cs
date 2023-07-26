@@ -3,6 +3,7 @@ using GYM.Management.Gains;
 using GYM.Management.Members;
 using GYM.Management.Permissions;
 using GYM.Management.Products;
+using GYM.Management.Safes;
 using GYM.Management.Trainers;
 using GYM.Management.Wallets;
 using Microsoft.AspNetCore.Authorization;
@@ -32,9 +33,10 @@ namespace GYM.Management.MemberOrders
         private readonly IGainRepository _gainRepository;
         private readonly ITrainerRepository _trainerRepository;
         private readonly IWalletService _walletService;
+        private readonly ISafeRepository _safeRepository;
         public MemberOrderService(IProductRepository productRepository, IMemberOrderRepository memberOrderRepository,
             IMemberRepository memberRepository, IRepository<MemberOrder, Guid> repository, IGainRepository gainRepository,
-            ITrainerRepository trainerRepository, IWalletService walletService) : base(repository)
+            ITrainerRepository trainerRepository, IWalletService walletService, ISafeRepository safeRepository) : base(repository)
         {
 			_productRepository = productRepository;
 			_memberOrderRepository = memberOrderRepository;
@@ -42,6 +44,7 @@ namespace GYM.Management.MemberOrders
             _gainRepository = gainRepository;
             _trainerRepository = trainerRepository;
             _walletService = walletService;
+            _safeRepository = safeRepository;
 		}
         [Authorize(ManagementPermissions.Member.AddProduct)]
         public async Task PlaceOrder(ProductDto productDto, Guid memberId)
@@ -91,6 +94,7 @@ namespace GYM.Management.MemberOrders
             }
             await _gainRepository.InsertAsync(new Gain { Amount= amount,Description = description, MemberId = memberId });
             member.Debt -= amount;
+            await _safeRepository.PositiveCommit(amount, $"{member.Name} isimli üye borcunu ödedi.");
             await _memberRepository.UpdateAsync(member);
         }
     }

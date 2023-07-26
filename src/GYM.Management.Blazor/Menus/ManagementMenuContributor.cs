@@ -51,6 +51,20 @@ public class ManagementMenuContributor : IMenuContributor
 
         context.Menu.AddItem(
     new ApplicationMenuItem(
+        "Safe",
+        "Kasa",
+        icon: "fa fa-bicycle"
+    ).RequirePermissions(ManagementPermissions.Safe.Default).AddItem(
+        new ApplicationMenuItem(
+            "gym.Safe",
+            "Kasa",
+            url: "/safe"
+        )
+    )
+);
+
+        context.Menu.AddItem(
+    new ApplicationMenuItem(
         "Kategori",
         "Kategoriler",
         icon: "fa fa-cubes"
