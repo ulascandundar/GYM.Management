@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GYM.Management.AppointmentTransactions;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,5 +13,7 @@ namespace GYM.Management.Members
         Task AddDto(MemberCreateDto memberCreateDto);
         Task<PagedResultDto<MemberDto>> GetListAsync(GetMemberListInput input);
         Task<List<MemberDto>> GetDebtorMembers();
+        Task CommitAppointment(AppointmentTransactionCreateDto appointmentTransactionCreateDto);
+        Task<List<MemberDto>> GetAllMember();
     }
 }

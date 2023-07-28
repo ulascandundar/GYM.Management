@@ -1,4 +1,5 @@
-﻿using GYM.Management.Categories;
+﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Categories;
 using GYM.Management.ExerciseCategories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
@@ -82,6 +83,7 @@ public class ManagementDbContext :
     public DbSet<Loss> Losses { get; set; }
     public DbSet<Safe> Safes { get; set; }
     public DbSet<SafeTransaction> SafeTransactions  { get; set; }
+    public DbSet<AppointmentTransaction> AppointmentTransactions { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {

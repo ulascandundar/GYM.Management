@@ -63,7 +63,7 @@ namespace GYM.Management.MemberOrders
 				MemberOrderType = MemberOrderType.Product,
                 Profit = productDto.Quantity * (product.BuyPrice - product.StockPrice)
             });
-            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice).Percent(trainer.ProfitRate),WalletId =trainer.Wallet.Id,
+            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice - (productDto.Quantity * product.StockPrice)).Percent(trainer.ProfitRate),WalletId =trainer.Wallet.Id,
                 Description = $"{product.Name} SATIŞI - {productDto.Quantity} ADET",IsPositive = true });
             var member = await _memberRepository.GetAsync(o => o.Id == memberId);
             member.Debt += memberOrder.TotalPrice;

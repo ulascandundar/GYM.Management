@@ -55,6 +55,8 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         expensePermission.AddChild(ManagementPermissions.Expense.Delete, L("Permission:Expense.Delete"));
 
         var safePermission = myGroup.AddPermission(ManagementPermissions.Safe.Default, L("Permission:Safe"));
+
+        var graphicPermission = myGroup.AddPermission(ManagementPermissions.Graphic.Default, L("Permission:Graphic"));
     }
 
     private static LocalizableString L(string name)

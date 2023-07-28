@@ -241,16 +241,16 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //var result = await _exerciseService.GetListAsync(Filter);
-        Filter.MaxResultCount = PageSize;
-        Filter.SkipCount = 0;
-        Filter.Sorting = CurrentSorting;
-        var result = await _expenseService.GetListAsync(Filter);
-        ExpenseList = result.Items;
-        TotalCount = (int)result.TotalCount;
-    }
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //var result = await _exerciseService.GetListAsync(Filter);
+    //    Filter.MaxResultCount = PageSize;
+    //    Filter.SkipCount = 0;
+    //    Filter.Sorting = CurrentSorting;
+    //    var result = await _expenseService.GetListAsync(Filter);
+    //    ExpenseList = result.Items;
+    //    TotalCount = (int)result.TotalCount;
+    //}
     [Authorize(ManagementPermissions.Expense.Create)]
     private async Task AddData()
     {

@@ -3,6 +3,7 @@
 @using GYM.Management.Expenses;
 @using GYM.Management.Localization;
 @using Microsoft.Extensions.Localization;
+@using System.Globalization;
 @inherits ManagementComponentBase
 @inject IStringLocalizer<ManagementResource> L
 @inject IExpenseService _expenseService
@@ -25,10 +26,27 @@
         <Button Color="Color.Primary" Clicked="() => HandleRedraw()">Filtrele</Button>
     </Field>
 </Row>
-<Chart @ref="barChart" Type="ChartType.Bar" TItem="double" />
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Chart @ref="barChart" Type="ChartType.Bar" TItem="double" />
+    </Column>
+    <Column ColumnSize="ColumnSize.Is6">
+        <LineChart @ref="lineChart" TItem="double" />
+    </Column>
+    <Column ColumnSize="ColumnSize.Is6">
+        <LineChart @ref="lineChartAvarage" TItem="double" />
+    </Column>
+</Row>
+
+
+
 @code {
     Chart<double>? barChart;
+    LineChart<double> lineChart;
+    LineChart<double> lineChartAvarage;
     ExpenseReportInputDto expenseReport = new ExpenseReportInputDto { StartDate = DateTime.Today.AddYears(-1), EndDate = DateTime.Today };
+    private List<ExpenseDto> result = new List<ExpenseDto>();
     int expenseCount = 0;
     decimal expenseSum = 0;
     decimal salarySum = 0;
@@ -49,6 +67,8 @@
         await barChart.Clear();
         var datas = await GetBarChartDataset();
         await barChart.AddLabelsDatasetsAndUpdate(Labels, datas);
+        await HandleRedraw1();
+        await HandleRedraw2();
     }
 
     private async Task<BarChartDataset<double>> GetBarChartDataset()
@@ -69,21 +89,22 @@
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f)};
     List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f)};
 
-    List<double> RandomizeData()
+    List<DayData> GetDayData()
     {
-        var r = new Random(DateTime.Now.Millisecond);
+        var culture = new CultureInfo("tr-TR");
+        return result.GroupBy(o => o.Date.DayOfWeek).Select(o => new DayData { Day = culture.DateTimeFormat.GetDayName(o.Key), Sum = o.Sum(o => (double)o.Amount) }).ToList();
+    }
 
-        return new List<double> {
-            r.Next( 3, 50 ) * r.NextDouble(),
-            r.Next( 3, 50 ) * r.NextDouble(),
-            r.Next( 3, 50 ) * r.NextDouble(),
-            r.Next( 3, 50 ) * r.NextDouble(),
-            r.Next( 3, 50 ) * r.NextDouble(),
-            r.Next( 3, 50 ) * r.NextDouble() };
+    List<DayData> GetDayDataAvarage()
+    {
+        var culture = new CultureInfo("tr-TR");
+        return result.GroupBy(o => o.Date.DayOfWeek).Select(o => new DayData { Day = culture.DateTimeFormat.GetDayName(o.Key),
+                Sum = Math.Round(o.Average(o => (double)o.Amount), 2)
+            }).ToList();
     }
     private async Task<List<double>>  GetReports()
     {
-        var result = await _expenseService.GetReports(expenseReport);
+        result = await _expenseService.GetReports(expenseReport);
         expenseCount = result.Count;
         expenseSum = result.Sum(o => o.Amount);
         salarySum = result.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
@@ -102,4 +123,48 @@
     //    Console.WriteLine($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
     //    return Task.CompletedTask;
     //}
+    async Task HandleRedraw1()
+    {
+        await lineChart.Clear();
+        var labels = GetDayData().Select(o => o.Day).ToList();
+        await lineChart.AddLabelsDatasetsAndUpdate(labels, GetLineChartDataset());
+    }
+
+    async Task HandleRedraw2()
+    {
+        await lineChartAvarage.Clear();
+        var labels = GetDayDataAvarage().Select(o => o.Day).ToList();
+        await lineChartAvarage.AddLabelsDatasetsAndUpdate(labels, GetLineChartDatasetAvarage());
+    }
+
+    LineChartDataset<double> GetLineChartDataset()
+    {
+        return (new LineChartDataset<double>
+            {
+                Label = "Gün Toplamı",
+                Data = GetDayData().Select(o=>o.Sum).ToList(),
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                Fill = true,
+                PointRadius = 3,
+                CubicInterpolationMode = "monotone",
+            });
+    }
+
+    LineChartDataset<double> GetLineChartDatasetAvarage()
+    {
+        return (new LineChartDataset<double>
+            {
+                Label = "Gün Ortalaması",
+                Data = GetDayDataAvarage().Select(o => o.Sum).ToList(),
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                Fill = true,
+                PointRadius = 3,
+                CubicInterpolationMode = "monotone",
+            });
+    }
+
+    string[] Labels1 = { "Pazartesi", "Salı", "Çarşambalar", "Perşembe", "Cuma", "Cumartesi","Pazar" };
+
 }

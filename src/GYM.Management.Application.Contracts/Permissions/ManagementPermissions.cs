@@ -60,6 +60,7 @@ public static class ManagementPermissions
         public const string AddAppointment = Default + ".AddAppointment";
         public const string History = Default + ".History";
         public const string Pay = Default + ".Pay";
+        public const string AppintmentTransaction = Default + ".AppintmentTransaction";
     }
 
     public static class Expense
@@ -73,5 +74,10 @@ public static class ManagementPermissions
     public static class Safe
     {
         public const string Default = GroupName + ".Safe";
+    }
+
+    public static class Graphic
+    {
+        public const string Default = GroupName + ".Graphic";
     }
 }

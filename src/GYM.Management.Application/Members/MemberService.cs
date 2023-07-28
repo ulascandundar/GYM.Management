@@ -1,4 +1,5 @@
-﻿using GYM.Management.Permissions;
+﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Permissions;
 using GYM.Management.Trainers;
 using Microsoft.AspNetCore.Authorization;
 using System;
@@ -22,9 +23,10 @@ namespace GYM.Management.Members
         MemberCreateDto>,
     IMemberService
     {
-        public MemberService(IRepository<Member, Guid> repository) : base(repository)
+        private readonly IAppointmentTransactionRepository _appointmentTransactionRepository;
+        public MemberService(IRepository<Member, Guid> repository, IAppointmentTransactionRepository appointmentTransactionRepository) : base(repository)
         {
-
+            _appointmentTransactionRepository= appointmentTransactionRepository;
         }
         public Task AddDto(MemberCreateDto memberCreateDto)
         {
@@ -65,6 +67,21 @@ namespace GYM.Management.Members
             var result = await AsyncExecuter.ToListAsync(query);
             var listDto = ObjectMapper.Map<List<Member>, List<MemberDto>>(result);
             return listDto;
+        }
+
+        public async Task CommitAppointment(AppointmentTransactionCreateDto appointmentTransactionCreateDto)
+        {
+            var member = await GetEntityByIdAsync(appointmentTransactionCreateDto.MemberId);
+            member.AppointmentStock--;
+            await Repository.UpdateAsync(member);
+            await _appointmentTransactionRepository.InsertAsync(new AppointmentTransaction { Description=appointmentTransactionCreateDto.Description,
+            MemberId = appointmentTransactionCreateDto.MemberId,OldStock =member.AppointmentStock,TrainerId = (Guid)member.TrainerId});
+        }
+
+        public async Task<List<MemberDto>> GetAllMember()
+        {
+            var result = await Repository.GetListAsync();
+            return ObjectMapper.Map<List<Member>, List<MemberDto>>(result);
         }
     }
 }

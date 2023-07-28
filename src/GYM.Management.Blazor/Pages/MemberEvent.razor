@@ -107,16 +107,23 @@
     private Modal modalRef;
     private string gaindesc = "";
     private decimal debt = 0;
-    protected override async Task OnInitializedAsync()
+    protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberOrderDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
+        CurrentSorting = e.Columns
+           .Where(c => c.SortDirection != SortDirection.Default)
+           .Select(c => c.SortField + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+           .JoinAsString(",");
+        CurrentPage = e.Page;
         Filter.MaxResultCount = PageSize;
-        Filter.SkipCount = 0;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
         Filter.Sorting = CurrentSorting;
         var result = await _memberOrderService.GetListAsync(Filter);
         member = await _memberService.GetAsync(Id);
         memberOrderList = result.Items;
         TotalCount = (int)result.TotalCount;
+
+        await InvokeAsync(StateHasChanged);
     }
     private async Task OpenGainModel()
     {

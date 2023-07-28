@@ -101,7 +101,7 @@ public class ManagementMenuContributor : IMenuContributor
             "Üye Listesi",
             url: "/Member"
         )
-    )
+    ).AddItem(new ApplicationMenuItem("gym.UyeRandevuGecmisi","Üye Randevu Geçmişi", url: "/AppointmentTransaction")).RequirePermissions(ManagementPermissions.Member.AppintmentTransaction)
 );
 
         context.Menu.AddItem(
@@ -141,6 +141,18 @@ public class ManagementMenuContributor : IMenuContributor
     "Kart Raporları",
     url: "/expensereport"
 ).RequirePermissions(ManagementPermissions.Exercise.Default)));
+
+        context.Menu.AddItem(new ApplicationMenuItem(
+            "gym.Grafikler",
+            "Grafikler",
+            icon: "fa fa-bar-chart"
+            ).RequirePermissions(ManagementPermissions.Graphic.Default).AddItem(
+                new ApplicationMenuItem(
+                    "gym.",
+                    "Gider Grafiği",
+                    url: "/expensechart"
+                    )
+            ));
         if (MultiTenancyConsts.IsEnabled)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GYM.Management.AppointmentTransactions;
 using GYM.Management.Categories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
@@ -57,7 +58,11 @@ public class ManagementApplicationAutoMapperProfile : Profile
 		CreateMap<LossDto, LossCreateDto>().ReverseMap();
 
         CreateMap<SafeTransaction, SafeTransactionDto>().ReverseMap();
-        CreateMap<SafeTransaction, SafeTransactionDto>().ReverseMap();
+        CreateMap<SafeTransaction, SafeTransactionCreateDto>().ReverseMap();
         CreateMap<SafeTransactionDto, SafeTransactionCreateDto>().ReverseMap();
+
+        CreateMap<AppointmentTransaction, AppointmentTransactionDto>().ReverseMap();
+        CreateMap<AppointmentTransaction, AppointmentTransactionCreateDto>().ReverseMap();
+        CreateMap<AppointmentTransactionDto, AppointmentTransactionCreateDto>().ReverseMap();
     }
 }

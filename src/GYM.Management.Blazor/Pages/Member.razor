@@ -1,5 +1,6 @@
 ﻿@page "/Member"
 @attribute [Authorize(ManagementPermissions.Member.Default)]
+@using GYM.Management.AppointmentTransactions;
 @using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
@@ -62,6 +63,9 @@
                             <EntityAction TItem="MemberDto"
                                           Text="Randevu Paketi Ekle"
                                           Clicked="() => OpenStockModel(context.Id,context.Name)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Randevu Tüketimi Ekle"
+                                          Clicked="() => OpenAppointmentTransaction(context.Id,context.Name)" />
                             <EntityAction TItem="MemberDto"
                                           Text="Detaylı İşlemler"
                                           Clicked="() => NavigateToPage(context.Id)" />
@@ -356,6 +360,31 @@
     </ModalContent>
 </Modal>
 
+<Modal @ref="appointmentRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> @selectedName isimli üyeye Randevu Tüketimi Kayıt Ediliyor</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Açıklama</FieldLabel>
+                <TextEdit @bind-Text="@appointmentTransactionCreateDto.Description"></TextEdit>
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => CreateAppointmentTransaction()">
+                    Kaydet
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     @inject NavigationManager NavigationManager
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
@@ -371,8 +400,10 @@
     private Modal modalRef;
     private Modal productModalRef;
     private Modal stockModelRef;
+    private Modal appointmentRef;
     private MemberOrderAppointmentCreateDto appointmentDto { get; set; } = new MemberOrderAppointmentCreateDto();
     private ProductDto SelectedProduct = new ProductDto();
+    private AppointmentTransactionCreateDto appointmentTransactionCreateDto = new AppointmentTransactionCreateDto();
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -391,6 +422,7 @@
 
         await InvokeAsync(StateHasChanged);
     }
+
 
     private async Task OnKeyPress(KeyboardEventArgs e)
     {
@@ -562,6 +594,32 @@
             var result = await _memberService.GetListAsync(Filter);
             MemberList = result.Items;
             TotalCount = (int)result.TotalCount;
+        }
+    }
+    private async Task OpenAppointmentTransaction(Guid id, string memberName)
+    {
+        selectedName = memberName;
+        appointmentTransactionCreateDto.MemberId = id;
+        await appointmentRef.Show();
+    }
+    private async Task CreateAppointmentTransaction()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{selectedName} isimli üyeye randevu tüketimi tanımlanacak");
+            if (confirmed)
+            {
+                await _memberService.CommitAppointment(appointmentTransactionCreateDto);
+                await Message.Success("Randevu tüketi tanımlandı");
+                await appointmentRef.Close(CloseReason.None);
+                var result = await _memberService.GetListAsync(Filter);
+                MemberList = result.Items;
+                TotalCount = (int)result.TotalCount;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
         }
     }
 }
