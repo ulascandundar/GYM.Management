@@ -54,6 +54,7 @@
     decimal walletSum = 0;
     decimal stockOrder = 0;
     decimal stockLeak = 0;
+    decimal lossSum = 0;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -85,9 +86,9 @@
 
     }
 
-    string[] Labels = { "Standart Harcama", "Maaş Ödeme", "Cüzdandan Para Çekme", "Stok Siparişi", "Stok Sayımı" };
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f)};
-    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f)};
+    string[] Labels = { "Standart Harcama", "Maaş Ödeme", "Cüzdandan Para Çekme", "Stok Siparişi", "Stok Sayımı","Zaiyat" };
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(153, 102, 255, 1f) };
 
     List<DayData> GetDayData()
     {
@@ -112,8 +113,9 @@
         walletSum = result.Where(o => o.ExpenseType == ExpenseType.Wallet).Sum(o => o.Amount);
         stockOrder = result.Where(o => o.ExpenseType == ExpenseType.StockOrder).Sum(o => o.Amount);
         stockLeak = result.Where(o => o.ExpenseType == ExpenseType.StockLeak).Sum(o => o.Amount);
+        lossSum = result.Where(o => o.ExpenseType == ExpenseType.Loss).Sum(o => o.Amount);
         return new List<double> { Decimal.ToDouble(spendingSum),
-            Decimal.ToDouble(salarySum), Decimal.ToDouble(walletSum), Decimal.ToDouble(stockOrder), Decimal.ToDouble(stockLeak) };
+            Decimal.ToDouble(salarySum), Decimal.ToDouble(walletSum), Decimal.ToDouble(stockOrder), Decimal.ToDouble(stockLeak),Decimal.ToDouble(lossSum) };
 
     }
     //Task OnClicked(ChartMouseEventArgs e)

@@ -57,6 +57,8 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         var safePermission = myGroup.AddPermission(ManagementPermissions.Safe.Default, L("Permission:Safe"));
 
         var graphicPermission = myGroup.AddPermission(ManagementPermissions.Graphic.Default, L("Permission:Graphic"));
+
+        var hangfirePermission = myGroup.AddPermission(ManagementPermissions.Hangfire.Default, L("Permission:Hangfire"));
     }
 
     private static LocalizableString L(string name)

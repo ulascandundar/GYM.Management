@@ -42,6 +42,7 @@
     "Permission:Expense.Delete": "Gider silme",
     "Permission:Safe": "Kasa yönetimi",
     "Permission:Graphic": "Grafik yönetimi",
+    "Permission:Hangfire": "ArkaPlan servisi yönetimi",
     "Enum:ExpenseType.0": "Standart Harcama",
     "Enum:ExpenseType.1": "Maaş Ödeme",
     "Enum:ExpenseType.2": "Cüzdandan Para Çekme",

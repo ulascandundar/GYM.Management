@@ -80,4 +80,9 @@ public static class ManagementPermissions
     {
         public const string Default = GroupName + ".Graphic";
     }
+
+    public static class Hangfire
+    {
+        public const string Default = GroupName + ".Hangfire";
+    }
 }

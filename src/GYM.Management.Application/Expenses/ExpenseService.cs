@@ -71,7 +71,7 @@ namespace GYM.Management.Expenses
         public async Task<List<ExpenseDto>> GetReports(ExpenseReportInputDto dto)
         {
             var query = await Repository.GetQueryableAsync();
-            query = query.Where(o => o.Date.Date >= dto.StartDate.Date && o.Date.Date <= dto.EndDate.Date);
+            query = query.Where(o => o.CreationTime.Date >= dto.StartDate.Date && o.CreationTime.Date <= dto.EndDate.Date);
             var result = await AsyncExecuter.ToListAsync(query);
             var listDto = ObjectMapper.Map<List<Expense>, List<ExpenseDto>>(result);
             return listDto;
