@@ -45,7 +45,7 @@
     Chart<double>? barChart;
     LineChart<double> lineChart;
     LineChart<double> lineChartAvarage;
-    ExpenseReportInputDto expenseReport = new ExpenseReportInputDto { StartDate = DateTime.Today.AddYears(-1), EndDate = DateTime.Today };
+    ExpenseReportInputDto expenseReport = new ExpenseReportInputDto { StartDate = DateTime.Today.AddDays(-1), EndDate = DateTime.Today };
     private List<ExpenseDto> result = new List<ExpenseDto>();
     int expenseCount = 0;
     decimal expenseSum = 0;
