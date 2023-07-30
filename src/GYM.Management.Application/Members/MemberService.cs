@@ -26,7 +26,12 @@ namespace GYM.Management.Members
         private readonly IAppointmentTransactionRepository _appointmentTransactionRepository;
         public MemberService(IRepository<Member, Guid> repository, IAppointmentTransactionRepository appointmentTransactionRepository) : base(repository)
         {
-            _appointmentTransactionRepository= appointmentTransactionRepository;
+            GetPolicyName = ManagementPermissions.Member.Default;
+            GetListPolicyName = ManagementPermissions.Member.Default;
+            CreatePolicyName = ManagementPermissions.Member.Create;
+            UpdatePolicyName = ManagementPermissions.Member.Edit;
+            DeletePolicyName = ManagementPermissions.Member.Delete;
+            _appointmentTransactionRepository = appointmentTransactionRepository;
         }
         public Task AddDto(MemberCreateDto memberCreateDto)
         {
@@ -40,6 +45,10 @@ namespace GYM.Management.Members
             {
                 input.Name = input.Name.ToLower();
                 query = query.Where(o => o.Name.ToLower().Contains(input.Name));
+            }
+            if (input.AnyDebt)
+            {
+                query = query.Where(o => o.Debt > 0);
             }
             var totalCount = await AsyncExecuter.CountAsync(query);
             query = query.OrderBy(string.IsNullOrWhiteSpace(input.Sorting)

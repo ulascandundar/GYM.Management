@@ -13,5 +13,6 @@ namespace GYM.Management.AppointmentTransactions
         public int OldStock { get; set; }
         public string MemberName { get; set; }
         public string TrainerName { get; set; }
+        public DateTime Date { get; set; }
     }
 }

@@ -15,6 +15,7 @@ namespace GYM.Management.AppointmentTransactions
         public Guid TrainerId { get; set; }
         public string Description { get; set; }
         public int OldStock { get; set; }
+        public DateTime Date { get; set; }
         public virtual Member Member { get; set; }
         public virtual Trainer Trainer { get; set; }
     }

@@ -9,5 +9,6 @@ namespace GYM.Management.AppointmentTransactions
     {
         public Guid MemberId { get; set; }
         public string? Description { get; set; }
+        public DateTime Date { get; set; }
     }
 }
