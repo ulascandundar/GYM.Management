@@ -48,6 +48,7 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         memberPermission.AddChild(ManagementPermissions.Member.AddAppointment, L("Permission:Member.AddAppointment"));
         memberPermission.AddChild(ManagementPermissions.Member.History, L("Permission:Member.History"));
         memberPermission.AddChild(ManagementPermissions.Member.Pay, L("Permission:Member.Pay"));
+        memberPermission.AddChild(ManagementPermissions.Member.AppointmentTransaction, L("Permission:Member.AppointmentTransaction"));
 
         var expensePermission = myGroup.AddPermission(ManagementPermissions.Expense.Default, L("Permission:Expense"));
         expensePermission.AddChild(ManagementPermissions.Expense.Create, L("Permission:Expense.Create"));

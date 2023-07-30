@@ -60,7 +60,7 @@ public static class ManagementPermissions
         public const string AddAppointment = Default + ".AddAppointment";
         public const string History = Default + ".History";
         public const string Pay = Default + ".Pay";
-        public const string AppintmentTransaction = Default + ".AppintmentTransaction";
+        public const string AppointmentTransaction = Default + ".AppointmentTransaction";
     }
 
     public static class Expense

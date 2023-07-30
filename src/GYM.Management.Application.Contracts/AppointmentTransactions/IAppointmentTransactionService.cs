@@ -10,5 +10,7 @@ namespace GYM.Management.AppointmentTransactions
     public interface IAppointmentTransactionService : ICrudAppService<AppointmentTransactionDto, Guid, PagedAndSortedResultRequestDto, AppointmentTransactionCreateDto>
     {
         Task<PagedResultDto<AppointmentTransactionDto>> GetListAsync(GetAppointmentTransactionListInput input);
+
+        Task UpdateDescription(AppointmentTransactionCreateDto dto);
     }
 }

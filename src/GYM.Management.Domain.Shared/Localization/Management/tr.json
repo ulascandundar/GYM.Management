@@ -36,6 +36,7 @@
     "Permission:Member.AddAppointment": "Üyeye randevu hakkı ekleme",
     "Permission:Member.History": "Üye geçmişi görüntüleme",
     "Permission:Member.Pay": "Üye borç ödeme",
+    "Permission:Member.AppointmentTransaction": "Randevu Test ve Açıklama Yönetimi",
     "Permission:Expense": "Gider yönetimi",
     "Permission:Expense.Create": "Gider oluşturma",
     "Permission:Expense.Edit": "Gider güncelleme",

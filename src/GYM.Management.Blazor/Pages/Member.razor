@@ -368,8 +368,8 @@
         </ModalHeader>
         <ModalBody>
             <Field>
-                <FieldLabel>Açıklama</FieldLabel>
-                <TextEdit @bind-Text="@appointmentTransactionCreateDto.Description"></TextEdit>
+                <FieldLabel>Test Açıklama</FieldLabel>
+                <MemoEdit AutoSize @bind-Text="@appointmentTransactionCreateDto.Description"></MemoEdit>
             </Field>
             <Column ColumnSize="ColumnSize.IsAuto">
                 <Button Color="Color.Primary"

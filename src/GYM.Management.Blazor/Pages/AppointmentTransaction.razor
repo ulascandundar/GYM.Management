@@ -1,7 +1,9 @@
 ﻿@page "/AppointmentTransaction"
+@attribute [Authorize(ManagementPermissions.Member.AppointmentTransaction)]
 @using GYM.Management.AppointmentTransactions;
 @using GYM.Management.Localization;
 @using GYM.Management.Members;
+@using GYM.Management.Permissions;
 @using GYM.Management.Trainers;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
@@ -14,7 +16,7 @@
     <CardHeader>
         <Row Class="justify-content-between">
             <Column ColumnSize="ColumnSize.IsAuto">
-                <h2>Randevu Geçmişi</h2>
+                <h2>Randevu Geçmişi ve Testler</h2>
             </Column>
         </Row>
     </CardHeader>
@@ -66,7 +68,8 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+                  RowClicked="@(e=>OpenEditModalAsync(e.Item))">
             <DataGridColumns>
               @*  <DataGridEntityActionsColumn TItem="AppointmentTransactionDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
@@ -103,7 +106,31 @@
         </DataGrid>
     </CardBody>
 </Card>
+<Modal @ref="EditModal">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> Randevu Açıklaması ve Testleri</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <MemoEdit AutoSize  @bind-Text="EditingEntity.Description"></MemoEdit>
 
+            </Field>
+            
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => Save()">
+                    Kaydet
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
     private IReadOnlyList<AppointmentTransactionDto> TransactionList { get; set; } = new List<AppointmentTransactionDto>();
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
@@ -113,7 +140,8 @@
     private string CurrentSorting { get; set; }
     private int TotalCount { get; set; }
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
-
+    private AppointmentTransactionDto selectedIdOnClick= new AppointmentTransactionDto();
+    private Modal modalRef;
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<AppointmentTransactionDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -141,5 +169,28 @@
         var result = await _appointmentTransactionService.GetListAsync(Filter);
         TransactionList = result.Items;
         TotalCount = (int)result.TotalCount;
+    }
+
+    private async Task RowClick(AppointmentTransactionDto dto)
+    {
+        selectedIdOnClick = dto;
+        await modalRef.Show();
+    }
+
+    private async Task Save()
+    {
+        try
+        {
+            await _appointmentTransactionService.UpdateDescription(EditingEntity);
+            var result = await _appointmentTransactionService.GetListAsync(Filter);
+            TransactionList = result.Items;
+            TotalCount = (int)result.TotalCount;
+            await Message.Success("Kaydedildi");
+            await EditModal.Close(CloseReason.None);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 }

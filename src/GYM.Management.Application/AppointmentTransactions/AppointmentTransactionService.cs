@@ -65,5 +65,12 @@ namespace GYM.Management.AppointmentTransactions
             }
 
         }
+
+        public async Task UpdateDescription(AppointmentTransactionCreateDto dto)
+        {
+            var transaction = await Repository.GetAsync(dto.Id);
+            transaction.Description = dto.Description;
+            await Repository.UpdateAsync(transaction);
+        }
     }
 }
