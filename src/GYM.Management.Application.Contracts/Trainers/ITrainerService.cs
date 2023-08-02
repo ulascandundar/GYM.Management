@@ -15,5 +15,6 @@ namespace GYM.Management.Trainers
         Task<List<TrainerDto>> GetPaymentDuoTrainer();
         Task AddAsync(TrainerCreateDto dto);
         Task<PagedResultDto<TrainerDto>> GetListAsync(GetTrainerListInput input);
+        Task<List<TrainerForUserDto>> GetAllTrainerForUser();
     }
 }

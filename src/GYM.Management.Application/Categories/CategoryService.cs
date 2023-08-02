@@ -1,6 +1,7 @@
 ﻿using GYM.Management.ExerciseCategories;
 using GYM.Management.Exercises;
 using GYM.Management.Permissions;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace GYM.Management.Categories
             UpdatePolicyName = ManagementPermissions.Category.Edit;
             DeletePolicyName = ManagementPermissions.Category.Delete;
         }
-
+        [Authorize(ManagementPermissions.Category.Edit)]
         public async Task<bool> AddExerciseCategory(Guid categoryId, Guid exerciseId)
         {
             var category = await Repository.GetAsync(categoryId);

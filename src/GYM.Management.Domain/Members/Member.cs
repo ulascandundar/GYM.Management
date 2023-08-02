@@ -1,4 +1,5 @@
-﻿using GYM.Management.Trainers;
+﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,6 @@ namespace GYM.Management.Members
         public virtual Trainer Trainer { get; set; }
         public int AppointmentStock { get; set; }
         public decimal Debt { get; set; }
+        public virtual ICollection<AppointmentTransaction> AppointmentTransactions { get; set; }
     }
 }

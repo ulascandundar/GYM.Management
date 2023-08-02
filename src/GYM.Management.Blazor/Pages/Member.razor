@@ -1,5 +1,6 @@
 ﻿@page "/Member"
 @attribute [Authorize(ManagementPermissions.Member.Default)]
+@using GYM.Management.AppointmentTransactions;
 @using GYM.Management.MemberOrders;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions
@@ -32,19 +33,32 @@
     </CardHeader>
     <CardBody>
         <div id="UserFilterSection" class="row mt-3">
-            <Column ColumnSize="ColumnSize.Is12">
+            <Column ColumnSize="ColumnSize.Is6">
                 <Field>
                     <FieldLabel>İsim</FieldLabel>
                     <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Name" />
                 </Field>
             </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>Sadece Borçluları Getir</FieldLabel>
+                    <Check TValue="bool" @bind-Checked="@Filter.AnyDebt" />
+                </Field>
+            </Column>
+            <Field>
+                <Button Color="Color.Primary"
+                        Clicked="() => Refresh()">
+                    Filtrele
+                </Button>
+            </Field>
         </div>
         <DataGrid TItem="MemberDto"
                   Data="MemberList"
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+        Responsive="true">
             <DataGridColumns>
                 <DataGridEntityActionsColumn TItem="MemberDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
@@ -62,6 +76,9 @@
                             <EntityAction TItem="MemberDto"
                                           Text="Randevu Paketi Ekle"
                                           Clicked="() => OpenStockModel(context.Id,context.Name)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Randevu Tüketimi Ekle"
+                                          Clicked="() => OpenAppointmentTransaction(context.Id,context.Name)" />
                             <EntityAction TItem="MemberDto"
                                           Text="Detaylı İşlemler"
                                           Clicked="() => NavigateToPage(context.Id)" />
@@ -137,6 +154,9 @@
                     <Field>
                         <FieldLabel>Antenör Seçimi</FieldLabel>
                         <Select TValue="Guid?" @bind-SelectedValue="@NewEntity.TrainerId">
+                            <SelectItem TValue="Guid" Value="Guid.Empty">
+
+                            </SelectItem>
                             @foreach (var item in TrainerList)
                             {
                                 <SelectItem TValue="Guid" Value="@item.Id">
@@ -182,7 +202,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Telefon</FieldLabel>
-                           <TextEdit MaskType="MaskType.Numeric" @bind-Text="@NewEntity.Telephone">
+                            <TextEdit MaskType="MaskType.Numeric" @bind-Text="@EditingEntity.Telephone">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -197,6 +217,9 @@
                 <Field>
                     <FieldLabel>Antenör Seçimi</FieldLabel>
                     <Select TValue="Guid?" @bind-SelectedValue="@EditingEntity.TrainerId">
+                        <SelectItem TValue="Guid" Value="Guid.Empty">
+
+                        </SelectItem>
                         @foreach (var item in TrainerList)
                         {
                             <SelectItem TValue="Guid" Value="@item.Id">
@@ -356,6 +379,35 @@
     </ModalContent>
 </Modal>
 
+<Modal @ref="appointmentRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> @selectedName isimli üyeye Randevu Tüketimi Kayıt Ediliyor</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Test Açıklama</FieldLabel>
+                <MemoEdit AutoSize @bind-Text="@appointmentTransactionCreateDto.Description"></MemoEdit>
+            </Field>
+            <Field>
+                <FieldLabel>Randevu Tarihi</FieldLabel>
+                <DateEdit TValue="DateTime" @bind-Date="@appointmentTransactionCreateDto.Date" InputMode="DateInputMode.DateTime" />
+            </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => CreateAppointmentTransaction()">
+                    Kaydet
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     @inject NavigationManager NavigationManager
     private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
@@ -371,8 +423,10 @@
     private Modal modalRef;
     private Modal productModalRef;
     private Modal stockModelRef;
+    private Modal appointmentRef;
     private MemberOrderAppointmentCreateDto appointmentDto { get; set; } = new MemberOrderAppointmentCreateDto();
     private ProductDto SelectedProduct = new ProductDto();
+    private AppointmentTransactionCreateDto appointmentTransactionCreateDto = new AppointmentTransactionCreateDto();
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<MemberDto> e)
     {
         //var result = await _exerciseService.GetListAsync(Filter);
@@ -392,6 +446,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
+
     private async Task OnKeyPress(KeyboardEventArgs e)
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
@@ -403,6 +458,15 @@
             MemberList = result.Items;
             TotalCount = (int)result.TotalCount;
         }
+    }
+    private async Task Refresh()
+    {
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        var result = await _memberService.GetListAsync(Filter);
+        MemberList = result.Items;
+        TotalCount = (int)result.TotalCount;
     }
     protected override async Task OnInitializedAsync()
     {
@@ -553,15 +617,49 @@
     [Authorize(ManagementPermissions.Member.AddAppointment)]
     private async Task PlaceOrderStock(MemberOrderAppointmentCreateDto dto)
     {
-        var confirmed = await Message.Confirm($"{selectedName} isimli üyeye {dto.UnitPrice * dto.AppointmentStock} TL değerinde {dto.AppointmentStock} adet randevu tanımlanacak");
-        if (confirmed)
+        try
         {
-            await _memberOrderService.PlaceOrderAppointment(dto, SelectedId);
-            dto = null;
-            await Message.Success("Randevu paketi tanımlandı");
-            var result = await _memberService.GetListAsync(Filter);
-            MemberList = result.Items;
-            TotalCount = (int)result.TotalCount;
+            var confirmed = await Message.Confirm($"{selectedName} isimli üyeye {dto.UnitPrice * dto.AppointmentStock} TL değerinde {dto.AppointmentStock} adet randevu tanımlanacak");
+            if (confirmed)
+            {
+                await _memberOrderService.PlaceOrderAppointment(dto, SelectedId);
+                dto = null;
+                await Message.Success("Randevu paketi tanımlandı");
+                var result = await _memberService.GetListAsync(Filter);
+                MemberList = result.Items;
+                TotalCount = (int)result.TotalCount;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+       
+    }
+    private async Task OpenAppointmentTransaction(Guid id, string memberName)
+    {
+        selectedName = memberName;
+        appointmentTransactionCreateDto.MemberId = id;
+        await appointmentRef.Show();
+    }
+    private async Task CreateAppointmentTransaction()
+    {
+        try
+        {
+            var confirmed = await Message.Confirm($"{selectedName} isimli üyeye randevu tüketimi tanımlanacak");
+            if (confirmed)
+            {
+                await _memberService.CommitAppointment(appointmentTransactionCreateDto);
+                await Message.Success("Randevu tüketi tanımlandı");
+                await appointmentRef.Close(CloseReason.None);
+                var result = await _memberService.GetListAsync(Filter);
+                MemberList = result.Items;
+                TotalCount = (int)result.TotalCount;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
         }
     }
 }

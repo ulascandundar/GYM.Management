@@ -13,5 +13,6 @@ namespace GYM.Management.Exercises
 		public string Name { get; set; }
         [Required]
         public string Description { get; set; }
+		public string? Video { get; set; }
 	}
 }

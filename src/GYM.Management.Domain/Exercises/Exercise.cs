@@ -12,6 +12,7 @@ namespace GYM.Management.Exercises
     public class Exercise : FullAuditedAggregateRoot<Guid>
     {
         public string Name { get; set; }
+        public string? Video { get; set; }
         public string Description { get; set; }
         public virtual ICollection<ExerciseCategory> ExerciseCategories { get; set; }
     }

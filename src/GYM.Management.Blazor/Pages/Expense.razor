@@ -1,5 +1,6 @@
 ﻿@page "/expense"
 @attribute [Authorize(ManagementPermissions.Expense.Default)]
+@using GYM.Management.ExpenseTypes;
 @using GYM.Management.Expenses;
 @using GYM.Management.Permissions;
 @using Microsoft.Extensions.Localization;
@@ -8,7 +9,7 @@
 @inject IStringLocalizer<ManagementResource> L
 @inherits AbpCrudPageBase<IExpenseService, ExpenseDto, Guid, PagedAndSortedResultRequestDto, ExpenseCreateDto>
 @inject IExpenseService _expenseService
-
+@inject IExpenseTypeService _expenseTypeService
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
@@ -34,14 +35,18 @@
             <Column ColumnSize="ColumnSize.Is6">
                 <Field>
                     <FieldLabel>Gider Tipi</FieldLabel>
-                    <Select TValue="ExpenseType?" @bind-SelectedValue="@Filter.ExpenseType">
+                    <Select TValue="Guid?" @bind-SelectedValue="@Filter.ExpenseType">
                         <SelectItem></SelectItem>
-                        <SelectItem Value="ExpenseType.Spending"> @L[$"Enum:ExpenseType.0"]</SelectItem>
+                        @foreach (var item in expenseTypeDtos)
+                        {
+                            <SelectItem Value="item.Id">@item.Name</SelectItem>
+                        }
+                        @*<SelectItem Value="ExpenseType.Spending"> @L[$"Enum:ExpenseType.0"]</SelectItem>
                         <SelectItem Value="ExpenseType.Salary"> @L[$"Enum:ExpenseType.1"]</SelectItem>
                         <SelectItem Value="ExpenseType.Wallet"> @L[$"Enum:ExpenseType.2"]</SelectItem>
                         <SelectItem Value="ExpenseType.StockOrder"> @L[$"Enum:ExpenseType.3"]</SelectItem>
                         <SelectItem Value="ExpenseType.StockLeak"> @L[$"Enum:ExpenseType.4"]</SelectItem>
-                        <SelectItem Value="ExpenseType.Loss"> @L[$"Enum:ExpenseType.5"]</SelectItem>
+                        <SelectItem Value="ExpenseType.Loss"> @L[$"Enum:ExpenseType.5"]</SelectItem>*@
                     </Select>
                 </Field>
             </Column>
@@ -78,15 +83,15 @@
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
                 <DataGridColumn TItem="ExpenseDto"
-                                Field="@nameof(ExpenseDto.ExpenseType)"
+                                Field="@nameof(ExpenseDto.ExpenseTypeName)"
                                 Caption="Gider Tipi">
-                    <DisplayTemplate>
-                        @L[$"Enum:ExpenseType.{(int)context.ExpenseType}"]
-                    </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn TItem="ExpenseDto"
                                 Field="@nameof(ExpenseDto.Amount)"
                                 Caption="Tutar">
+                                <DisplayTemplate>
+                                    @context.Amount TL
+                                </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn TItem="ExpenseDto"
                                 Field="@nameof(ExpenseDto.Description)"
@@ -132,7 +137,15 @@
                             </TextEdit>
                         </Field>
                     </Validation>
-                    
+                    <Field>
+                        <FieldLabel>Gider Tipi</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewEntity.ExpenseTypeId">
+                            @foreach (var item in expenseTypeDtos)
+                            {
+                                <SelectItem Value="item.Id">@item.Name</SelectItem>
+                            }
+                        </Select>
+                    </Field>
                     <Field>
                         <FieldLabel>Tutar</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="NewEntity.Amount" />
@@ -206,6 +219,7 @@
     private string CurrentSorting { get; set; }
     private int TotalCount { get; set; }
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+    private IReadOnlyList<ExpenseTypeDto> expenseTypeDtos = new List<ExpenseTypeDto>();
 
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ExpenseDto> e)
     {
@@ -240,13 +254,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //var result = await _exerciseService.GetListAsync(Filter);
-        Filter.MaxResultCount = PageSize;
-        Filter.SkipCount = 0;
-        Filter.Sorting = CurrentSorting;
-        var result = await _expenseService.GetListAsync(Filter);
-        ExpenseList = result.Items;
-        TotalCount = (int)result.TotalCount;
+        expenseTypeDtos = (await _expenseTypeService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 999, SkipCount = 0, Sorting = "Id" })).Items;
     }
     [Authorize(ManagementPermissions.Expense.Create)]
     private async Task AddData()
@@ -261,7 +269,7 @@
             if (validate)
             {
                 //await _.AnyName(NewEntity.Name);
-                var data = await _expenseService.CreateAsync(NewEntity);
+                await _expenseService.Create(NewEntity);
 
                 var result = await _expenseService.GetListAsync(Filter);
                 ExpenseList = result.Items;

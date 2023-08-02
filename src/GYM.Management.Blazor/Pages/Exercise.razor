@@ -32,6 +32,9 @@
                     <TextEdit TValue="string" KeyPress="OnKeyPress" @bind-Text="@Filter.Name" />
                 </Field>
             </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Button Color="Color.Info" Clicked="() => showVideo = !showVideo">Video Aç Kapa</Button>
+            </Column>
         </div>
         <DataGrid TItem="ExerciseDto"
                   Data="ExerciseList"
@@ -66,6 +69,16 @@
                         @context.CreationTime.ToLongDateString()
                     </DisplayTemplate>
                 </DataGridColumn>
+                @if (showVideo)
+                {
+                    <DataGridColumn TItem="ExerciseDto"
+                                Field="@nameof(ExerciseDto.CreationTime)"
+                                Caption="Video">
+                        <DisplayTemplate>
+                            <iframe src="@context.Video"></iframe>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                }
             </DataGridColumns>
         </DataGrid>
     </CardBody>
@@ -100,6 +113,16 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Video</FieldLabel>
+                            <TextEdit @bind-Text="@NewEntity.Video">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
                 </Validations>
             </ModalBody>
             <ModalFooter>
@@ -122,7 +145,7 @@
                 <CloseButton Clicked="CloseEditModalAsync"/>
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
+                <Validations @ref="@EditValidationsRef" Model="@EditingEntity" ValidateOnLoad="false">
                     <Validation>
                         <Field>
                             <FieldLabel>İsim</FieldLabel>
@@ -137,6 +160,16 @@
                         <Field>
                             <FieldLabel>Açıklama</FieldLabel>
                             <TextEdit @bind-Text="@EditingEntity.Description">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation>
+                        <Field>
+                            <FieldLabel>Video</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEntity.Video">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -169,6 +202,7 @@
     private string CurrentSorting { get; set; }
     private int TotalCount { get; set; }
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+    private bool showVideo = false;
     //protected Modal CreateModal;
     //protected Modal EditModal;
     protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ExerciseDto> e)
@@ -201,42 +235,44 @@
             TotalCount = (int)result.TotalCount;
         }
     }
-    protected override async Task OnInitializedAsync()
-    {
-        //var result = await _exerciseService.GetListAsync(Filter);
-        Filter.MaxResultCount = PageSize;
-        Filter.SkipCount =0;
-        Filter.Sorting = CurrentSorting;
-        var result = await _exerciseService.GetListAsync(Filter);
-        ExerciseList = result.Items;
-        TotalCount = (int)result.TotalCount;
-    }
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //var result = await _exerciseService.GetListAsync(Filter);
+    //    Filter.MaxResultCount = PageSize;
+    //    Filter.SkipCount =0;
+    //    Filter.Sorting = CurrentSorting;
+    //    var result = await _exerciseService.GetListAsync(Filter);
+    //    ExerciseList = result.Items;
+    //    TotalCount = (int)result.TotalCount;
+    //}
     [Authorize(ManagementPermissions.Exercise.Create)]
     private async Task AddData()
     {
         try
         {
-            var validate = true;
-            if (CreateValidationsRef != null)
+            var confirmed = await Message.Confirm($"Egzersiz eklenecek eminmisiniz.");
+            if (confirmed)
             {
-                validate = await CreateValidationsRef.ValidateAll();
-            }
-            if (validate)
-            {
-                var isany= await _exerciseService.AnyName(NewEntity.Name);
-                if (isany)
+                var validate = true;
+                if (CreateValidationsRef != null)
                 {
-                     var data = await _exerciseService.CreateAsync(NewEntity);
-                 
-                var result = await _exerciseService.GetListAsync(Filter);
-                ExerciseList = result.Items;
-                TotalCount = (int)result.TotalCount;
-                await InvokeAsync(CreateModal.Hide);
-                await Notify.Success("Egzersiz eklendi");
+                    validate = await CreateValidationsRef.ValidateAll();
                 }
-               
+                if (validate)
+                {
+                    var isany = await _exerciseService.AnyName(NewEntity.Name);
+                    if (isany)
+                    {
+                        var data = await _exerciseService.CreateAsync(NewEntity);
+
+                        var result = await _exerciseService.GetListAsync(Filter);
+                        ExerciseList = result.Items;
+                        TotalCount = (int)result.TotalCount;
+                        await InvokeAsync(CreateModal.Hide);
+                        await Notify.Success("Egzersiz eklendi");
+                    }
+                }
             }
-            
         }
         catch (Exception ex)
         {

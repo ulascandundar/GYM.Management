@@ -41,6 +41,10 @@ using Volo.Abp.UI;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Volo.Abp.Hangfire;
+using GYM.Management.Permissions;
 
 namespace GYM.Management.Blazor;
 
@@ -100,6 +104,7 @@ public class ManagementBlazorModule : AbpModule
         ConfigureBlazorise(context);
         ConfigureRouter(context);
         ConfigureMenu(context);
+        ConfigureHangfire(context, configuration);
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
@@ -208,6 +213,14 @@ public class ManagementBlazorModule : AbpModule
         });
     }
 
+    private void ConfigureHangfire(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        context.Services.AddHangfire(config =>
+        {
+            config.UsePostgreSqlStorage(configuration.GetConnectionString("Default"));
+        });
+    }
+
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var env = context.GetEnvironment();
@@ -243,6 +256,10 @@ public class ManagementBlazorModule : AbpModule
         app.UseAbpSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "Management API");
+        });
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            AsyncAuthorization = new[] { new AbpHangfireAuthorizationFilter(requiredPermissionName: ManagementPermissions.Hangfire.Default) }
         });
         app.UseConfiguredEndpoints();
     }

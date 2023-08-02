@@ -8,7 +8,7 @@ namespace GYM.Management.Expenses
     public class GetExpenseListInput : PagedAndSortedResultRequestDto
     {
         public string Description { get; set; }
-        public ExpenseType? ExpenseType { get; set; }
+        public Guid? ExpenseType { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }

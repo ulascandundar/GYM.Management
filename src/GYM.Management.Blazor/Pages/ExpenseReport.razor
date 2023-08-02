@@ -1,7 +1,14 @@
 ﻿@page "/expensereport"
+@using GYM.Management.ExpenseTypes;
 @using GYM.Management.Expenses;
 @using System.Globalization;
+@using GYM.Management.Localization;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@inject IStringLocalizer<ManagementResource> L
 @inject IExpenseService _expenseService
+@inject IExpenseTypeService _expenseTypeService
+@inject NavigationManager NavigationManager
 <Row>
     <Column ColumnSize="ColumnSize.Is6">
         <Field>
@@ -22,7 +29,7 @@
     </Field>
 </Row>
 <Row>
-    <Column ColumnSize="ColumnSize.Is4">
+    @*<Column ColumnSize="ColumnSize.Is4">
         <Card Background="Background.Primary" WhiteText>
     <CardBody>
         <CardTitle Size="3">
@@ -31,6 +38,11 @@
         <CardText>
                     @expenseSum.ToString("N2") TL
         </CardText>
+                <CardFooter>
+                    <Button @onclick="@(() => GetDetail(null,"Bütün harcamalar"))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                        Detay Sayfasına Git <Icon Name="IconName.Book" />
+                    </Button>
+                </CardFooter>
     </CardBody>
 </Card>
     </Column>
@@ -44,6 +56,11 @@
                     @expenseCount adet
                 </CardText>
             </CardBody>
+            <CardFooter>
+                <Button @onclick="@(() => GetDetail(null,"Bütün harcamalar"))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                    Detay Sayfasına Git <Icon Name="IconName.Book" />
+                </Button>
+            </CardFooter>
         </Card>
     </Column>
     <Column ColumnSize="ColumnSize.Is4">
@@ -56,6 +73,11 @@
                     @salarySum.ToString("N2") TL
                 </CardText>
             </CardBody>
+            <CardFooter>
+                <Button @onclick="@(() => GetDetail(ExpenseType.Salary,"Maaş Giderler"))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                    Detay Sayfasına Git <Icon Name="IconName.Book" />
+                </Button>
+            </CardFooter>
         </Card>
     </Column>
     <Column ColumnSize="ColumnSize.Is4">
@@ -68,22 +90,97 @@
                     @spendingSum.ToString("N2") TL
                 </CardText>
             </CardBody>
+            <CardFooter>
+                <Button @onclick="@(() => GetDetail(ExpenseType.Spending,"Diğer giderler"))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                    Detay Sayfasına Git <Icon Name="IconName.Book" />
+                </Button>
+            </CardFooter>
         </Card>
-    </Column>
+    </Column>*@
+    @foreach (var item in expenseTypeDtos)
+    {
+        <Column ColumnSize="ColumnSize.Is4">
+            <Card Background="Background.Primary" WhiteText>
+                <CardBody>
+                    <CardTitle Size="3">
+                       @item.Name
+                    </CardTitle>
+                    <CardText>
+                        @expenseDtos.Where(o=>o.ExpenseTypeId==item.Id).Sum(o=>o.Amount).ToString("N2") TL
+                    </CardText>
+                </CardBody>
+                <CardFooter>
+                    <Button @onclick="@(() => GetDetail(item.Id,item.Name))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                        Detay Sayfasına Git <Icon Name="IconName.Book" />
+                    </Button>
+                </CardFooter>
+            </Card>
+        </Column>
+    }
 </Row>
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Fullscreen">
+        <ModalHeader>
+            <ModalTitle> @modelheader </ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Table Bordered>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderCell>Eklenme Tarihi</TableHeaderCell>
+                        <TableHeaderCell>Tutar</TableHeaderCell>
+                        <TableHeaderCell>Açıklama</TableHeaderCell>
+                        <TableHeaderCell>Gider Tipi</TableHeaderCell>
 
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    @foreach (var item in filteredDtos)
+                    {
+                        <TableRow>
+                            <TableRowCell>@item.CreationTime.ToLongDateString()</TableRowCell>
+                            <TableRowCell>@item.Amount TL</TableRowCell>
+                            <TableRowCell>@item.Description</TableRowCell>
+                            <TableRowCell>@item.ExpenseTypeName</TableRowCell>
+                        </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        expenseTypeDtos = (await _expenseTypeService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 999, SkipCount = 0, Sorting = "Id" })).Items;
+    }
     ExpenseReportInputDto expenseReport = new ExpenseReportInputDto{StartDate = DateTime.Today, EndDate =DateTime.Today};
     int expenseCount = 0;
+    private List<ExpenseDto> expenseDtos = new List<ExpenseDto>();
+    private List<ExpenseDto> filteredDtos = new List<ExpenseDto>();
+    private IReadOnlyList<ExpenseTypeDto> expenseTypeDtos = new List<ExpenseTypeDto>();
+    private Modal modalRef;
     decimal expenseSum = 0;
     decimal salarySum = 0;
     decimal spendingSum = 0;
+    string modelheader = "";
     private async Task GetReports()
     {
-        var result = await _expenseService.GetReports(expenseReport);
-        expenseCount = result.Count;
-        expenseSum = result.Sum(o => o.Amount);
-        salarySum = result.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
-        spendingSum = result.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
+        expenseDtos = await _expenseService.GetReports(expenseReport);
+        expenseCount = expenseDtos.Count;
+        //expenseSum = expenseDtos.Sum(o => o.Amount);
+        //salarySum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
+        //spendingSum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
     } 
+
+    private async Task GetDetail(Guid id, string header)
+    {
+        filteredDtos = expenseDtos.Where(o => o.ExpenseTypeId == id).ToList();
+        modelheader = header;
+        await modalRef.Show();
+    }
 }

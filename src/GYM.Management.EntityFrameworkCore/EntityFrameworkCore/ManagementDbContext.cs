@@ -1,17 +1,22 @@
-﻿using GYM.Management.Categories;
+﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Categories;
 using GYM.Management.ExerciseCategories;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
+using GYM.Management.ExpenseTypes;
 using GYM.Management.Gains;
 using GYM.Management.Losses;
 using GYM.Management.MemberOrders;
 using GYM.Management.Members;
 using GYM.Management.Products;
+using GYM.Management.Safes;
+using GYM.Management.SafeTransactions;
 using GYM.Management.StockTakings;
 using GYM.Management.Trainers;
 using GYM.Management.Wallets;
 using GYM.Management.WalletTransactions;
 using Microsoft.EntityFrameworkCore;
+using System;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -78,6 +83,10 @@ public class ManagementDbContext :
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<StockTaking> StockTakings { get; set; }
     public DbSet<Loss> Losses { get; set; }
+    public DbSet<Safe> Safes { get; set; }
+    public DbSet<SafeTransaction> SafeTransactions  { get; set; }
+    public DbSet<AppointmentTransaction> AppointmentTransactions { get; set; }
+    public DbSet<ExpenseType> ExpenseTypes { get; set; }
     public ManagementDbContext(DbContextOptions<ManagementDbContext> options)
         : base(options)
     {
@@ -98,7 +107,9 @@ public class ManagementDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
-
+        builder.Entity<Expense>()
+            .Property(o => o.ExpenseTypeId)
+            .HasDefaultValue(Guid.Parse(StaticConsts.Spending));
         /* Configure your own tables/entities inside here */
 
         //builder.Entity<YourEntity>(b =>

@@ -8,5 +8,6 @@ namespace GYM.Management.Members
     public class GetMemberListInput : PagedAndSortedResultRequestDto
     {
         public string Name { get; set; }
+        public bool AnyDebt { get; set; }
     }
 }

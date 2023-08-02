@@ -30,7 +30,8 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+                  Responsive="true">
             <DataGridColumns>
                 <DataGridEntityActionsColumn TItem="ProductDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
@@ -117,7 +118,7 @@
                     <Validation>
                         <Field>
                             <FieldLabel>Başlangıç Stoğu</FieldLabel>
-                            <NumericEdit TValue="int" @bind-Text="@NewEntity.Stock">
+                            <NumericEdit TValue="int" @bind-Value="@NewEntity.Stock">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>

@@ -1,4 +1,5 @@
-﻿using GYM.Management.Expenses;
+﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Expenses;
 using GYM.Management.Members;
 using GYM.Management.Wallets;
 using System;
@@ -22,5 +23,6 @@ namespace GYM.Management.Trainers
         public virtual ICollection<Member> Members { get; set; }
         public virtual ICollection<Expense> Expenses { get; set; }
         public virtual Wallet Wallet { get; set; }
+        public virtual ICollection<AppointmentTransaction> AppointmentTransactions { get; set; }
     }
 }

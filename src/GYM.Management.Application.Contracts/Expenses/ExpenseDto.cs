@@ -12,6 +12,7 @@ namespace GYM.Management.Expenses
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         public string Description { get; set; }
-        public ExpenseType ExpenseType { get; set; }
+        public Guid ExpenseTypeId { get; set; }
+        public string ExpenseTypeName { get; set; }
     }
 }

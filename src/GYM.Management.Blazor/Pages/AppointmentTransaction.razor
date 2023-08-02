@@ -1,0 +1,226 @@
+﻿@page "/AppointmentTransaction"
+@attribute [Authorize(ManagementPermissions.Member.AppointmentTransaction)]
+@using GYM.Management.AppointmentTransactions;
+@using GYM.Management.Localization;
+@using GYM.Management.Members;
+@using GYM.Management.Permissions;
+@using GYM.Management.Trainers;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@inject IStringLocalizer<ManagementResource> L
+@inherits AbpCrudPageBase<IAppointmentTransactionService, AppointmentTransactionDto, Guid, GetAppointmentTransactionListInput, AppointmentTransactionCreateDto>
+@inject IAppointmentTransactionService _appointmentTransactionService
+@inject IMemberService _memberService
+@inject ITrainerService _trainerService
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>Randevu Geçmişi ve Testler</h2>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <div id="UserFilterSection" class="row mt-3">
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>Antrenör</FieldLabel>
+                    <Select TValue="Guid?" @bind-SelectedValue="@Filter.TrainerId">
+                        <SelectItem></SelectItem>
+                        @foreach (var item in TrainerList)
+                        {
+                            <SelectItem Value="@item.Id">@item.Name</SelectItem>
+                        }
+                        
+                    </Select>
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <Field>
+                    <FieldLabel>Müşteri</FieldLabel>
+                    <Select TValue="Guid?" @bind-SelectedValue="@Filter.MemberId">
+                        <SelectItem></SelectItem>
+                        @foreach (var item in MemberList)
+                        {
+                            <SelectItem Value="@item.Id">@item.Name</SelectItem>
+                        }
+
+                    </Select>
+                </Field>
+            </Column>
+            @*<Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Başlangıç Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.StartDate"></InputDate>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Sonlanma Tarihi</FieldLabel>
+                <InputDate TValue="DateTime?" @bind-Value="Filter.EndDate"></InputDate>
+            </Column>*@
+            <Field>
+                <Button Color="Color.Primary"
+                        Clicked="() => Refresh()">
+                    Filtrele
+                </Button>
+            </Field>
+        </div>
+        <DataGrid TItem="AppointmentTransactionDto"
+                  Data="TransactionList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="AppointmentTransactionDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="AppointmentTransactionDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="AppointmentTransactionDto"
+                                          Text="Sil"
+                                          Clicked="() => Cancel(context.Id)" />
+
+                            <EntityAction TItem="AppointmentTransactionDto"
+                                          Text="Testi Görüntüle ve Düzenle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.Description)"
+                                Caption="Açıklama">
+                </DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.TrainerName)"
+                                Caption="Antrenör"></DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.MemberName)"
+                                Caption="Müşteri"></DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.OldStock)"
+                                Caption="Kalan Randevu"></DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.Date)"
+                                Caption="Randevu Tarihi">
+                    <DisplayTemplate>
+                        @context.Date.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.CreationTime)"
+                                Caption="Eklenme Tarihi">
+                    <DisplayTemplate>
+                        @context.CreationTime.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+<Modal @ref="EditModal">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle> Randevu Açıklaması ve Testleri</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <MemoEdit AutoSize  @bind-Text="EditingEntity.Description"></MemoEdit>
+
+            </Field>
+            
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => Save()">
+                    Kaydet
+                </Button>
+            </Column>
+
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+@code {
+    private IReadOnlyList<AppointmentTransactionDto> TransactionList { get; set; } = new List<AppointmentTransactionDto>();
+    private IReadOnlyList<MemberDto> MemberList { get; set; } = new List<MemberDto>();
+    private IReadOnlyList<TrainerDto> TrainerList { get; set; } = new List<TrainerDto>();
+    private GetAppointmentTransactionListInput Filter { get; set; } = new GetAppointmentTransactionListInput();
+    private int CurrentPage { get; set; }
+    private string CurrentSorting { get; set; }
+    private int TotalCount { get; set; }
+    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+    private AppointmentTransactionDto selectedIdOnClick= new AppointmentTransactionDto();
+    private Modal modalRef;
+    protected virtual async Task OnDataGridReadAsync(DataGridReadDataEventArgs<AppointmentTransactionDto> e)
+    {
+        //var result = await _exerciseService.GetListAsync(Filter);
+        CurrentSorting = e.Columns
+            .Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.SortField + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+        CurrentPage = e.Page;
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        var result = await _appointmentTransactionService.GetListAsync(Filter);
+        TransactionList = result.Items;
+        TotalCount = (int)result.TotalCount;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TrainerList = await _trainerService.GetAllTrainerForMember();
+        MemberList = await _memberService.GetAllMember();
+    }
+    private async Task Refresh()
+    {
+        var result = await _appointmentTransactionService.GetListAsync(Filter);
+        TransactionList = result.Items;
+        TotalCount = (int)result.TotalCount;
+    }
+
+    private async Task RowClick(AppointmentTransactionDto dto)
+    {
+        selectedIdOnClick = dto;
+        await modalRef.Show();
+    }
+
+    private async Task Save()
+    {
+        try
+        {
+            await _appointmentTransactionService.UpdateDescription(EditingEntity);
+            var result = await _appointmentTransactionService.GetListAsync(Filter);
+            TransactionList = result.Items;
+            TotalCount = (int)result.TotalCount;
+            await Message.Success("Kaydedildi");
+            await EditModal.Close(CloseReason.None);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task Cancel(Guid id)
+    {
+        try
+        {
+            var confirm = await Message.Confirm("Randevuyu iptal etmek istediğinize eminmisiniz");
+            if (confirm)
+            {
+                await _appointmentTransactionService.Cancel(id);
+                await Message.Success("Randevu iptal edildi");
+                var result = await _appointmentTransactionService.GetListAsync(Filter);
+                TransactionList = result.Items;
+                TotalCount = (int)result.TotalCount;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        
+    }
+}

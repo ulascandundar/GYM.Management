@@ -1,6 +1,8 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.ExpenseTypes;
 using GYM.Management.Permissions;
 using GYM.Management.Wallets;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,7 +34,7 @@ namespace GYM.Management.Trainers
 			UpdatePolicyName = ManagementPermissions.Trainer.Edit;
 			DeletePolicyName = ManagementPermissions.Trainer.Delete;
 		}
-
+        [Authorize(ManagementPermissions.Trainer.Delete)]
         public async Task DeleteAsyncById(Guid id)
         {
             var query = (await Repository.GetQueryableAsync()).Where(o=>o.Id==id).SelectMany(o => o.Members).Where(o=>o.IsDeleted==false);
@@ -50,7 +52,7 @@ namespace GYM.Management.Trainers
             var result = await Repository.GetListAsync();
             return  ObjectMapper.Map<List<Trainer>,List<TrainerDto>>(result);
         }
-
+        [Authorize(ManagementPermissions.Trainer.Edit)]
         public async Task PaySalary(Guid trainerId)
         {
             var trainer = await Repository.GetAsync(trainerId);
@@ -59,7 +61,7 @@ namespace GYM.Management.Trainers
             {
                 Amount = trainer.Salary,
                 Description = "Maaş Ödemesi",
-                ExpenseType = ExpenseType.Salary,
+                ExpenseTypeId = Guid.Parse(StaticConsts.SalaryId),
                 Date = DateTime.UtcNow
             });
         }
@@ -75,7 +77,7 @@ namespace GYM.Management.Trainers
             var result = await AsyncExecuter.ToListAsync(query);
             return ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
         }
-
+        [Authorize(ManagementPermissions.Trainer.Create)]
         public async Task AddAsync(TrainerCreateDto dto)
         {
             var trainer = ObjectMapper.Map<TrainerCreateDto, Trainer>(dto);
@@ -105,6 +107,12 @@ namespace GYM.Management.Trainers
             var result = await AsyncExecuter.ToListAsync(query);
             var listDto = ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
             return new PagedResultDto<TrainerDto>(totalCount, listDto);
+        }
+
+        public async Task<List<TrainerForUserDto>> GetAllTrainerForUser()
+        {
+            var result = await Repository.GetListAsync();
+            return ObjectMapper.Map<List<Trainer>, List<TrainerForUserDto>>(result);
         }
     }
 }
