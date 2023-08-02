@@ -10,6 +10,6 @@ namespace GYM.Management.Expenses
         public string Description { get; set; }
         public decimal Amount { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
-        public ExpenseType ExpenseType { get; set; }
+        public Guid ExpenseTypeId { get; set; }
     }
 }

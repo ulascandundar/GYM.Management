@@ -150,7 +150,7 @@ public class ManagementMenuContributor : IMenuContributor
     "gym.Giderler.KartRaporlari",
     "Kart Raporları",
     url: "/expensereport"
-).RequirePermissions(ManagementPermissions.Exercise.Default))).AddItem(new ApplicationMenuItem(
+).RequirePermissions(ManagementPermissions.Exercise.Default)).AddItem(new ApplicationMenuItem("gym.Giderypes", "Gider Tipleri", url: "/expensetype").RequirePermissions(ManagementPermissions.ExpenseType.Default))).AddItem(new ApplicationMenuItem(
             "gym.Grafikler",
             "Grafikler",
             icon: "fa fa-bar-chart"

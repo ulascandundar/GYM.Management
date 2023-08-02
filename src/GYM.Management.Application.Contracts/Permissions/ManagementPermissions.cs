@@ -85,4 +85,12 @@ public static class ManagementPermissions
     {
         public const string Default = GroupName + ".Hangfire";
     }
+
+    public static class ExpenseType
+    {
+        public const string Default = GroupName + ".ExpenseType";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
 }

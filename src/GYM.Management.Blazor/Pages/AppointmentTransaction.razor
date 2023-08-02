@@ -68,19 +68,21 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize"
-                  RowClicked="@(e=>OpenEditModalAsync(e.Item))">
+                  PageSize="PageSize">
             <DataGridColumns>
-              @*  <DataGridEntityActionsColumn TItem="AppointmentTransactionDto" @ref="@EntityActionsColumn">
+                <DataGridEntityActionsColumn TItem="AppointmentTransactionDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
                         <EntityActions TItem="AppointmentTransactionDto" EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="AppointmentTransactionDto"
                                           Text="Sil"
-                                          Clicked="() => DeleteData(context)"
-                                          ConfirmationMessage="() => GetDeleteConfirmationMessage(context)" />
+                                          Clicked="() => Cancel(context.Id)" />
+
+                            <EntityAction TItem="AppointmentTransactionDto"
+                                          Text="Testi Görüntüle ve Düzenle"
+                                          Clicked="() => OpenEditModalAsync(context)" />
                         </EntityActions>
                     </DisplayTemplate>
-                </DataGridEntityActionsColumn>*@
+                </DataGridEntityActionsColumn>
                 <DataGridColumn TItem="AppointmentTransactionDto"
                                 Field="@nameof(AppointmentTransactionDto.Description)"
                                 Caption="Açıklama">
@@ -94,6 +96,13 @@
                 <DataGridColumn TItem="AppointmentTransactionDto"
                                 Field="@nameof(AppointmentTransactionDto.OldStock)"
                                 Caption="Kalan Randevu"></DataGridColumn>
+                <DataGridColumn TItem="AppointmentTransactionDto"
+                                Field="@nameof(AppointmentTransactionDto.Date)"
+                                Caption="Randevu Tarihi">
+                    <DisplayTemplate>
+                        @context.Date.ToLongDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
                 <DataGridColumn TItem="AppointmentTransactionDto"
                                 Field="@nameof(AppointmentTransactionDto.CreationTime)"
                                 Caption="Eklenme Tarihi">
@@ -192,5 +201,26 @@
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task Cancel(Guid id)
+    {
+        try
+        {
+            var confirm = await Message.Confirm("Randevuyu iptal etmek istediğinize eminmisiniz");
+            if (confirm)
+            {
+                await _appointmentTransactionService.Cancel(id);
+                await Message.Success("Randevu iptal edildi");
+                var result = await _appointmentTransactionService.GetListAsync(Filter);
+                TransactionList = result.Items;
+                TotalCount = (int)result.TotalCount;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        
     }
 }

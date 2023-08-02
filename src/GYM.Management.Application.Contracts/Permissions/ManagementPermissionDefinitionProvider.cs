@@ -60,6 +60,13 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         var graphicPermission = myGroup.AddPermission(ManagementPermissions.Graphic.Default, L("Permission:Graphic"));
 
         var hangfirePermission = myGroup.AddPermission(ManagementPermissions.Hangfire.Default, L("Permission:Hangfire"));
+
+        var expenseTypePermissiom = myGroup.AddPermission(ManagementPermissions.ExpenseType.Default, L("Permission:ExpenseType"));
+        expenseTypePermissiom.AddChild(ManagementPermissions.ExpenseType.Create, L("Permission:ExpenseType.Create"));
+        expenseTypePermissiom.AddChild(ManagementPermissions.ExpenseType.Edit, L("Permission:ExpenseType.Edit"));
+        expenseTypePermissiom.AddChild(ManagementPermissions.ExpenseType.Delete, L("Permission:ExpenseType.Delete"));
+
+
     }
 
     private static LocalizableString L(string name)

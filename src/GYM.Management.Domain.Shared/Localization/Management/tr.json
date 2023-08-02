@@ -49,6 +49,8 @@
     "Enum:ExpenseType.2": "Cüzdandan Para Çekme",
     "Enum:ExpenseType.3": "Stok Siparişi",
     "Enum:ExpenseType.4": "Stok Sayımı",
-    "Enum:ExpenseType.5": "Zaiyat"
+    "Enum:ExpenseType.5": "Zaiyat",
+    "Enum:UserType.0": "Normal",
+    "Enum:UserType.1": "Antrenör"
   }
 }

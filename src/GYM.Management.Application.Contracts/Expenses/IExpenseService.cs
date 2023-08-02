@@ -11,5 +11,7 @@ namespace GYM.Management.Expenses
     {
         Task<PagedResultDto<ExpenseDto>> GetListAsync(GetExpenseListInput input);
         Task<List<ExpenseDto>> GetReports(ExpenseReportInputDto dto);
+
+        Task Create(ExpenseCreateDto input);
     }
 }

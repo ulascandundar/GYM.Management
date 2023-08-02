@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GYM.Management.ExpenseTypes;
+using GYM.Management.Safes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -22,9 +24,24 @@ namespace GYM.Management.Expenses
     IExpenseService
     {
         private readonly IDataFilter _dataFilter;
-        public ExpenseService(IDataFilter dataFilter, IRepository<Expense, Guid> repository) : base(repository)
+        private readonly IExpenseTypeRepository _expenseTypeRepository;
+        private readonly ISafeRepository _safeRepository;
+        public ExpenseService(IDataFilter dataFilter, IRepository<Expense, Guid> repository,IExpenseTypeRepository expenseTypeRepository, ISafeRepository safeRepository) : base(repository)
         {
             _dataFilter = dataFilter;
+            _expenseTypeRepository = expenseTypeRepository;
+            _safeRepository = safeRepository;
+        }
+
+        public async Task Create(ExpenseCreateDto input)
+        {
+            await CreateAsync(input);
+            var expenseType = await _expenseTypeRepository.GetAsync(o => o.Id == input.ExpenseTypeId);
+            if (expenseType.IsEffect)
+            {
+                await _safeRepository.NegativeCommit(input.Amount
+               , input.Description + $"Gider Tipi: {expenseType.Name}");
+            }
         }
 
         public async Task<PagedResultDto<ExpenseDto>> GetListAsync(GetExpenseListInput input)
@@ -38,7 +55,7 @@ namespace GYM.Management.Expenses
             }
             if (input.ExpenseType!=null)
             {
-                query = query.Where(o => o.ExpenseType == input.ExpenseType);
+                query = query.Where(o => o.ExpenseTypeId == input.ExpenseType);
             }
             if (input.StartDate.HasValue)
             {
@@ -62,6 +79,8 @@ namespace GYM.Management.Expenses
                 {
                     item.TrainerName = item.TrainerId == null ? null : result.Where(o => o.Id == item.Id)
                     .Select(o => o.Trainer.Name).FirstOrDefault();
+                    item.ExpenseTypeName = result.Where(o => o.Id == item.Id)
+                    .Select(o => o.Type.Name).FirstOrDefault();
                 }
                 return new PagedResultDto<ExpenseDto>(totalCount, listDto);
             }

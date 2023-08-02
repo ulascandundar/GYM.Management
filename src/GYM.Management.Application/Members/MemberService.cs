@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -81,8 +82,16 @@ namespace GYM.Management.Members
         public async Task CommitAppointment(AppointmentTransactionCreateDto appointmentTransactionCreateDto)
         {
             var member = await GetEntityByIdAsync(appointmentTransactionCreateDto.MemberId);
+            if (member.AppointmentStock<1)
+            {
+                throw new UserFriendlyException("Üye nin randevu hakkı kalmamıştır.", "Üye nin randevu hakkı kalmamıştır.");
+            }
             member.AppointmentStock--;
             await Repository.UpdateAsync(member);
+            if (member.TrainerId==null)
+            {
+                throw new UserFriendlyException("Üye nin antrenörü seçili değildir", "Üye nin antrenörü seçili değildir");
+            }
             await _appointmentTransactionRepository.InsertAsync(new AppointmentTransaction { Description=appointmentTransactionCreateDto.Description,
             MemberId = appointmentTransactionCreateDto.MemberId,OldStock =member.AppointmentStock,TrainerId = (Guid)member.TrainerId});
         }

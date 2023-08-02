@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using GYM.Management.Users;
+using System;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Identity;
 using Volo.Abp.ObjectExtending;
 using Volo.Abp.Threading;
@@ -37,6 +39,22 @@ public static class ManagementModuleExtensionConfigurator
 
     private static void ConfigureExtraProperties()
     {
+        ObjectExtensionManager.Instance.Modules()
+    .ConfigureIdentity(identity =>
+    {
+        identity.ConfigureUser(user =>
+        {
+            user.AddOrUpdateProperty<UserType>("UserType");
+            user.AddOrUpdateProperty<Guid?>(
+                "TrainerId",
+                property =>
+                {
+                    property.UI.Lookup.Url = "/api/trainers";
+                    property.UI.Lookup.DisplayPropertyName = "name";
+                }
+            );
+        });
+    });
         /* You can configure extra properties for the
          * entities defined in the modules used by your application.
          *

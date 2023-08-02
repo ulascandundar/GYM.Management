@@ -154,6 +154,9 @@
                     <Field>
                         <FieldLabel>Antenör Seçimi</FieldLabel>
                         <Select TValue="Guid?" @bind-SelectedValue="@NewEntity.TrainerId">
+                            <SelectItem TValue="Guid" Value="Guid.Empty">
+
+                            </SelectItem>
                             @foreach (var item in TrainerList)
                             {
                                 <SelectItem TValue="Guid" Value="@item.Id">
@@ -214,6 +217,9 @@
                 <Field>
                     <FieldLabel>Antenör Seçimi</FieldLabel>
                     <Select TValue="Guid?" @bind-SelectedValue="@EditingEntity.TrainerId">
+                        <SelectItem TValue="Guid" Value="Guid.Empty">
+
+                        </SelectItem>
                         @foreach (var item in TrainerList)
                         {
                             <SelectItem TValue="Guid" Value="@item.Id">
@@ -383,6 +389,10 @@
             <Field>
                 <FieldLabel>Test Açıklama</FieldLabel>
                 <MemoEdit AutoSize @bind-Text="@appointmentTransactionCreateDto.Description"></MemoEdit>
+            </Field>
+            <Field>
+                <FieldLabel>Randevu Tarihi</FieldLabel>
+                <DateEdit TValue="DateTime" @bind-Date="@appointmentTransactionCreateDto.Date" InputMode="DateInputMode.DateTime" />
             </Field>
             <Column ColumnSize="ColumnSize.IsAuto">
                 <Button Color="Color.Primary"

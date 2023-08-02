@@ -1,10 +1,13 @@
 ﻿@page "/expensereport"
+@using GYM.Management.ExpenseTypes;
 @using GYM.Management.Expenses;
 @using System.Globalization;
 @using GYM.Management.Localization;
 @using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
 @inject IStringLocalizer<ManagementResource> L
 @inject IExpenseService _expenseService
+@inject IExpenseTypeService _expenseTypeService
 @inject NavigationManager NavigationManager
 <Row>
     <Column ColumnSize="ColumnSize.Is6">
@@ -26,7 +29,7 @@
     </Field>
 </Row>
 <Row>
-    <Column ColumnSize="ColumnSize.Is4">
+    @*<Column ColumnSize="ColumnSize.Is4">
         <Card Background="Background.Primary" WhiteText>
     <CardBody>
         <CardTitle Size="3">
@@ -93,7 +96,27 @@
                 </Button>
             </CardFooter>
         </Card>
-    </Column>
+    </Column>*@
+    @foreach (var item in expenseTypeDtos)
+    {
+        <Column ColumnSize="ColumnSize.Is4">
+            <Card Background="Background.Primary" WhiteText>
+                <CardBody>
+                    <CardTitle Size="3">
+                       @item.Name
+                    </CardTitle>
+                    <CardText>
+                        @expenseDtos.Where(o=>o.ExpenseTypeId==item.Id).Sum(o=>o.Amount).ToString("N2") TL
+                    </CardText>
+                </CardBody>
+                <CardFooter>
+                    <Button @onclick="@(() => GetDetail(item.Id,item.Name))" Color="Color.Primary" Margin="Margin.Is2.FromTop">
+                        Detay Sayfasına Git <Icon Name="IconName.Book" />
+                    </Button>
+                </CardFooter>
+            </Card>
+        </Column>
+    }
 </Row>
 <Modal @ref="modalRef">
     <ModalContent Size="ModalSize.Fullscreen">
@@ -119,7 +142,7 @@
                             <TableRowCell>@item.CreationTime.ToLongDateString()</TableRowCell>
                             <TableRowCell>@item.Amount TL</TableRowCell>
                             <TableRowCell>@item.Description</TableRowCell>
-                            <TableRowCell>@L[$"Enum:ExpenseType.{(int)item.ExpenseType}"]</TableRowCell>
+                            <TableRowCell>@item.ExpenseTypeName</TableRowCell>
                         </TableRow>
                     }
                 </TableBody>
@@ -131,10 +154,15 @@
     </ModalContent>
 </Modal>
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        expenseTypeDtos = (await _expenseTypeService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 999, SkipCount = 0, Sorting = "Id" })).Items;
+    }
     ExpenseReportInputDto expenseReport = new ExpenseReportInputDto{StartDate = DateTime.Today, EndDate =DateTime.Today};
     int expenseCount = 0;
     private List<ExpenseDto> expenseDtos = new List<ExpenseDto>();
     private List<ExpenseDto> filteredDtos = new List<ExpenseDto>();
+    private IReadOnlyList<ExpenseTypeDto> expenseTypeDtos = new List<ExpenseTypeDto>();
     private Modal modalRef;
     decimal expenseSum = 0;
     decimal salarySum = 0;
@@ -144,14 +172,14 @@
     {
         expenseDtos = await _expenseService.GetReports(expenseReport);
         expenseCount = expenseDtos.Count;
-        expenseSum = expenseDtos.Sum(o => o.Amount);
-        salarySum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
-        spendingSum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
+        //expenseSum = expenseDtos.Sum(o => o.Amount);
+        //salarySum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
+        //spendingSum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
     } 
 
-    private async Task GetDetail(ExpenseType? expenseType, string header)
+    private async Task GetDetail(Guid id, string header)
     {
-        filteredDtos = expenseDtos.Where(o => !expenseType.HasValue||o.ExpenseType == expenseType).ToList();
+        filteredDtos = expenseDtos.Where(o => o.ExpenseTypeId == id).ToList();
         modelheader = header;
         await modalRef.Show();
     }

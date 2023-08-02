@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.ExpenseTypes;
 using GYM.Management.Losses;
 using GYM.Management.Permissions;
 using GYM.Management.Safes;
@@ -50,7 +51,7 @@ namespace GYM.Management.Products
             if (product.Stock > dto.NewStock)
             {
                 await _expenseRepository.InsertAsync(new Expense { Amount = (product.Stock-dto.NewStock) * product.StockPrice,Date= DateTime.UtcNow,
-                ExpenseType = ExpenseType.StockLeak,Description = $"{product.Name} isimli üründe yapılan stok sayımında {product.Stock - dto.NewStock}" +
+                ExpenseTypeId = Guid.Parse(StaticConsts.StockLeakId),Description = $"{product.Name} isimli üründe yapılan stok sayımında {product.Stock - dto.NewStock}" +
                 $" adet eksiğe rastlandı"});
             }
             product.Stock = dto.NewStock;
@@ -66,7 +67,7 @@ namespace GYM.Management.Products
                 Description = stockOrderCreateDto.Description +$" {product.Name} isimli üründen {stockOrderCreateDto.Quantity} adet sipariş edildi",
                 Amount = product.StockPrice * stockOrderCreateDto.Quantity,
                 Date = DateTime.UtcNow,
-                ExpenseType = ExpenseType.StockOrder
+                ExpenseTypeId = Guid.Parse(StaticConsts.StockOrder)
             });
             await _safeRepository.NegativeCommit(product.StockPrice * stockOrderCreateDto.Quantity
                 , stockOrderCreateDto.Description + $" {product.Name} isimli üründen {stockOrderCreateDto.Quantity} adet sipariş edildi");
@@ -83,7 +84,7 @@ namespace GYM.Management.Products
             product.Stock -= createLossDto.Quantity;
             await Repository.UpdateAsync(product);
             await _expenseRepository.InsertAsync(new Expense { Description = $"{product.Name} isimli üründen {createLossDto.Quantity} adet zaiyat kaydedildi. {createLossDto.Description}",
-            Amount = product.BuyPrice * createLossDto.Quantity,ExpenseType = ExpenseType.Loss});
+            Amount = product.BuyPrice * createLossDto.Quantity,ExpenseTypeId = Guid.Parse(StaticConsts.Loss) });
         }
     }
 }

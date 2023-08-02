@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.ExpenseTypes;
 using GYM.Management.Permissions;
 using GYM.Management.Wallets;
 using Microsoft.AspNetCore.Authorization;
@@ -60,7 +61,7 @@ namespace GYM.Management.Trainers
             {
                 Amount = trainer.Salary,
                 Description = "Maaş Ödemesi",
-                ExpenseType = ExpenseType.Salary,
+                ExpenseTypeId = Guid.Parse(StaticConsts.SalaryId),
                 Date = DateTime.UtcNow
             });
         }
@@ -106,6 +107,12 @@ namespace GYM.Management.Trainers
             var result = await AsyncExecuter.ToListAsync(query);
             var listDto = ObjectMapper.Map<List<Trainer>, List<TrainerDto>>(result);
             return new PagedResultDto<TrainerDto>(totalCount, listDto);
+        }
+
+        public async Task<List<TrainerForUserDto>> GetAllTrainerForUser()
+        {
+            var result = await Repository.GetListAsync();
+            return ObjectMapper.Map<List<Trainer>, List<TrainerForUserDto>>(result);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using GYM.Management.Expenses;
+using GYM.Management.ExpenseTypes;
 using GYM.Management.Permissions;
 using GYM.Management.Safes;
 using GYM.Management.SafeTransactions;
@@ -47,7 +48,7 @@ namespace GYM.Management.Wallets
                 }
                 wallet.Balance -= walletCommitDto.Amount;
             }
-            await _expenseRepository.InsertAsync(new Expense { Amount= walletCommitDto.Amount,Date = DateTime.UtcNow,ExpenseType= ExpenseType.Wallet
+            await _expenseRepository.InsertAsync(new Expense { Amount= walletCommitDto.Amount,Date = DateTime.UtcNow,ExpenseTypeId= Guid.Parse(StaticConsts.Wallet)
             ,Description = $"Cüzdandan para çekildi",TrainerId = wallet.TrainerId});
             await _safeRepository.NegativeCommit(walletCommitDto.Amount,$"{wallet.Trainer.Name} isimli antrenörün cüzdanından para çekildi");
             await _walletRepository.UpdateAsync(wallet);

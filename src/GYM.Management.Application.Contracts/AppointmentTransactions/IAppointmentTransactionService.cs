@@ -12,5 +12,6 @@ namespace GYM.Management.AppointmentTransactions
         Task<PagedResultDto<AppointmentTransactionDto>> GetListAsync(GetAppointmentTransactionListInput input);
 
         Task UpdateDescription(AppointmentTransactionCreateDto dto);
+        Task Cancel(Guid id);
     }
 }

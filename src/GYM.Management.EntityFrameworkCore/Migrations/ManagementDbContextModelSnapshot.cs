@@ -43,6 +43,9 @@ namespace GYM.Management.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CreatorId");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<Guid?>("DeleterId")
                         .HasColumnType("uuid")
                         .HasColumnName("DeleterId");
@@ -270,6 +273,70 @@ namespace GYM.Management.Migrations
                     b.ToTable("Exercises");
                 });
 
+            modelBuilder.Entity("GYM.Management.ExpenseTypes.ExpenseType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExtraProperties")
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsEffect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsStatic")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExpenseTypes");
+                });
+
             modelBuilder.Entity("GYM.Management.Expenses.Expense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -307,8 +374,10 @@ namespace GYM.Management.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ExpenseType")
-                        .HasColumnType("integer");
+                    b.Property<Guid?>("ExpenseTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("715652a8-1293-43f0-8e53-463f60a7fc7f"));
 
                     b.Property<string>("ExtraProperties")
                         .HasColumnType("text")
@@ -332,6 +401,8 @@ namespace GYM.Management.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExpenseTypeId");
 
                     b.HasIndex("TrainerId");
 
@@ -1861,6 +1932,9 @@ namespace GYM.Management.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("TenantId");
 
+                    b.Property<Guid?>("TrainerId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1872,6 +1946,9 @@ namespace GYM.Management.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("UserName");
+
+                    b.Property<int?>("UserType")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -2749,11 +2826,17 @@ namespace GYM.Management.Migrations
 
             modelBuilder.Entity("GYM.Management.Expenses.Expense", b =>
                 {
+                    b.HasOne("GYM.Management.ExpenseTypes.ExpenseType", "Type")
+                        .WithMany()
+                        .HasForeignKey("ExpenseTypeId");
+
                     b.HasOne("GYM.Management.Trainers.Trainer", "Trainer")
                         .WithMany("Expenses")
                         .HasForeignKey("TrainerId");
 
                     b.Navigation("Trainer");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("GYM.Management.Gains.Gain", b =>

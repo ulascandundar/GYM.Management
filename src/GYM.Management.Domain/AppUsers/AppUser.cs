@@ -7,7 +7,7 @@ using Volo.Abp.Identity;
 
 namespace GYM.Management.AppUsers
 {
-    public class AppUser : IdentityUser
+    public class AppUser
     {
         public Guid? TrainerId { get; set; }
     }
