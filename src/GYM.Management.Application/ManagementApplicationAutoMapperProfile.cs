@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GYM.Management.AppointmentTransactions;
 using GYM.Management.Categories;
+using GYM.Management.Debts;
 using GYM.Management.Exercises;
 using GYM.Management.Expenses;
 using GYM.Management.ExpenseTypes;
@@ -70,5 +71,7 @@ public class ManagementApplicationAutoMapperProfile : Profile
         CreateMap<ExpenseType, ExpenseTypeDto>().ReverseMap();
         CreateMap<ExpenseType, ExpenseTypeCreateDto>().ReverseMap();
         CreateMap<ExpenseTypeDto, ExpenseTypeCreateDto>().ReverseMap();
+
+        CreateMap<Debt, DebtDto>().ReverseMap();
     }
 }

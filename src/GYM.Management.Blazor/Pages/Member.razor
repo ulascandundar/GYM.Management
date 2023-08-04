@@ -82,6 +82,9 @@
                             <EntityAction TItem="MemberDto"
                                           Text="Detaylı İşlemler"
                                           Clicked="() => NavigateToPage(context.Id)" />
+                            <EntityAction TItem="MemberDto"
+                                          Text="Borç Yönetimi"
+                                          Clicked="() => NavigateToDebtPage(context.Id,context.Name)" />
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
@@ -313,7 +316,7 @@
         <ModalBody>
                     <Field>
                         <FieldLabel>Seans Adedi</FieldLabel>
-                <NumericPicker TValue="int" @bind-Value="appointmentDto.AppointmentStock"></NumericPicker> TL
+                <NumericPicker TValue="int" @bind-Value="appointmentDto.AppointmentStock"></NumericPicker>
 
                     </Field>
                     <Field>
@@ -528,6 +531,11 @@
     private void NavigateToPage(Guid id)
     {
         NavigationManager.NavigateTo($"/memberevent/{id}", true);
+    }
+
+    private void NavigateToDebtPage(Guid id,string name)
+    {
+        NavigationManager.NavigateTo($"/debt/{id}/{name}", true);
     }
     [Authorize(ManagementPermissions.Member.Create)]
     private async Task AddData()
