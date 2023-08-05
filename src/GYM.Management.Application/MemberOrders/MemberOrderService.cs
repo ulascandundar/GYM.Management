@@ -1,4 +1,5 @@
-﻿using GYM.Management.Extensions;
+﻿using GYM.Management.Debts;
+using GYM.Management.Extensions;
 using GYM.Management.Gains;
 using GYM.Management.Members;
 using GYM.Management.Permissions;
@@ -34,9 +35,10 @@ namespace GYM.Management.MemberOrders
         private readonly ITrainerRepository _trainerRepository;
         private readonly IWalletService _walletService;
         private readonly ISafeRepository _safeRepository;
+        private readonly IDebtRepository _debtRepository;
         public MemberOrderService(IProductRepository productRepository, IMemberOrderRepository memberOrderRepository,
             IMemberRepository memberRepository, IRepository<MemberOrder, Guid> repository, IGainRepository gainRepository,
-            ITrainerRepository trainerRepository, IWalletService walletService, ISafeRepository safeRepository) : base(repository)
+            ITrainerRepository trainerRepository, IWalletService walletService, ISafeRepository safeRepository, IDebtRepository debtRepository) : base(repository)
         {
 			_productRepository = productRepository;
 			_memberOrderRepository = memberOrderRepository;
@@ -45,6 +47,7 @@ namespace GYM.Management.MemberOrders
             _trainerRepository = trainerRepository;
             _walletService = walletService;
             _safeRepository = safeRepository;
+            _debtRepository = debtRepository;
 		}
         [Authorize(ManagementPermissions.Member.AddProduct)]
         public async Task PlaceOrder(ProductDto productDto, Guid memberId)
@@ -63,8 +66,15 @@ namespace GYM.Management.MemberOrders
 				MemberOrderType = MemberOrderType.Product,
                 Profit = productDto.Quantity * (product.BuyPrice - product.StockPrice)
             });
-            await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice - (productDto.Quantity * product.StockPrice)).Percent(trainer.ProfitRate),WalletId =trainer.Wallet.Id,
-                Description = $"{product.Name} SATIŞI - {productDto.Quantity} ADET",IsPositive = true });
+            await _debtRepository.InsertAsync(new Debt
+            {
+                IsPay = false,
+                Amount = memberOrder.TotalPrice,
+                Description = $"{product.Name} SATIŞI - {productDto.Quantity} ADET",
+                MemberId = memberId
+            });
+            //await _walletService.CommitToWallet(new WalletCommitDto { Amount = (memberOrder.TotalPrice - (productDto.Quantity * product.StockPrice)).Percent(trainer.ProfitRate),WalletId =trainer.Wallet.Id,
+            //    Description = $"{product.Name} SATIŞI - {productDto.Quantity} ADET",IsPositive = true });
             var member = await _memberRepository.GetAsync(o => o.Id == memberId);
             member.Debt += memberOrder.TotalPrice;
             await _memberRepository.UpdateAsync(member);
@@ -80,8 +90,20 @@ namespace GYM.Management.MemberOrders
                 MemberOrderType = MemberOrderType.Appointment
             });
 			var member = await _memberRepository.GetAsync(o=>o.Id ==memberId);
+            if (!member.TrainerId.HasValue)
+            {
+                throw new UserFriendlyException("Üyenin seçili antrenörü bulunmamakta", "Üyenin seçili antrenörü bulunmamakta");
+            }
 			member.AppointmentStock += dto.AppointmentStock;
             member.Debt += memberOrder.TotalPrice;
+            await _debtRepository.InsertAsync(new Debt
+            {
+                IsPay = false,
+                Amount = memberOrder.TotalPrice,
+                Description = $"Tanesi {dto.UnitPrice} TL den {dto.AppointmentStock} adet randevu satışı.",
+                MemberId = memberId,
+                TrainerId=member.TrainerId
+            });
             await _memberRepository.UpdateAsync(member);
         }
         [Authorize(ManagementPermissions.Member.Pay)]

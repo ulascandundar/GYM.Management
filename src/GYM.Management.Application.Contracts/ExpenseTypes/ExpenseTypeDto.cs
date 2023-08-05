@@ -10,5 +10,7 @@ namespace GYM.Management.ExpenseTypes
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsEffect { get; set; }
+        public bool IsStatic { get; set; }
+
     }
 }

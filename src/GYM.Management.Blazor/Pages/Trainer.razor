@@ -48,7 +48,8 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+                  Responsive="true">
             <DataGridColumns>
                 <DataGridEntityActionsColumn TItem="TrainerDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
@@ -63,6 +64,9 @@
                             <EntityAction TItem="TrainerDto"
                                           Text="Cüzdana Git"
                                           Clicked="() => NavigateToWallet(context.Id,context.Name)" />
+                            <EntityAction TItem="TrainerDto"
+                                          Text="Kazanımlarına Git"
+                                          Clicked="() => NavigateToGain(context.Id,context.Name)" />
                                           @if (IsPaymentDue(context.lastSalaryDate))
                             {
                                 <EntityAction TItem="TrainerDto"
@@ -121,7 +125,7 @@
                 <Validations @ref="@CreateValidationsRef" Model="@NewEntity" ValidateOnLoad="false">
                     <Validation>
                         <Field>
-                            <FieldLabel>İsim</FieldLabel>""
+                            <FieldLabel>İsim</FieldLabel>
                             <TextEdit @bind-Text="@NewEntity.Name">
                                 <Feedback>
                                     <ValidationError/>
@@ -302,6 +306,11 @@
     private void NavigateToWallet(Guid id,string name)
     {
         NavigationManager.NavigateTo($"/wallet/{id}/{name}", true);
+    }
+
+    private void NavigateToGain(Guid id, string name)
+    {
+        NavigationManager.NavigateTo($"/trainergain/{id}/{name}", true);
     }
 
     private async Task AddTrainerAsync()

@@ -56,6 +56,32 @@ namespace GYM.Management.Wallets
                 WalletId=walletCommitDto.WalletId, Description = walletCommitDto.Description });
         }
 
+        [Authorize(ManagementPermissions.Wallet.Edit)]
+        public async Task CommitToWalletNotSafeEffect(WalletCommitDto walletCommitDto)
+        {
+            var wallet = await _walletRepository.GetAsync(o => o.Id == walletCommitDto.WalletId);
+            if (walletCommitDto.IsPositive)
+            {
+                wallet.Balance += walletCommitDto.Amount;
+            }
+            else
+            {
+                if (wallet.Balance < walletCommitDto.Amount)
+                {
+                    throw new UserFriendlyException($"Bakiyeniz {wallet.Balance} TL dir", $"Bakiyeniz {wallet.Balance} TL dir");
+                }
+                wallet.Balance -= walletCommitDto.Amount;
+            }
+            await _walletRepository.UpdateAsync(wallet);
+            await _walletTransactionRepository.InsertAsync(new WalletTransaction
+            {
+                Amount = walletCommitDto.Amount,
+                IsPositive = walletCommitDto.IsPositive,
+                WalletId = walletCommitDto.WalletId,
+                Description = walletCommitDto.Description
+            });
+        }
+
         public async Task<WalletDetailDto> GetDetail(Guid id,string trainerName)
         {
            var wallet = await _walletRepository.GetByTrainerId(id);

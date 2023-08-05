@@ -1,0 +1,103 @@
+﻿@page "/debt/{Id:guid}/{Name}"
+@attribute [Authorize(ManagementPermissions.Debt.Default)]
+@using GYM.Management.Debts;
+@using GYM.Management.Permissions;
+@inherits ManagementComponentBase
+@inject IDebtService _debtService
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h2>@Name in borçları</h2>
+                <h3>Toplam Borç : @DebtList.Sum(o=>o.Amount) TL</h3>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+       
+        <Table Responsive="true">
+            <TableHeader>
+                <TableRow>
+                    <TableHeaderCell>Borç</TableHeaderCell>
+                    <TableHeaderCell>Açıklama</TableHeaderCell>
+                    <TableHeaderCell>Antrenör</TableHeaderCell>
+                    <TableHeaderCell>Tarih</TableHeaderCell>
+                    <TableHeaderCell></TableHeaderCell>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                @foreach (var item in DebtList)
+                {
+                    <TableRow>
+                        <TableRowCell>@item.Amount Tl</TableRowCell>
+                        <TableRowCell>@item.Description</TableRowCell>
+                        <TableRowCell>@item.TrainerName</TableRowCell>
+                        <TableRowCell>@item.CreationTime.ToShortDateString()</TableRowCell>
+                        <TableRowCell><Button Clicked="()=>OpenModel(item.Id)" Color="Color.Warning">Öde</Button></TableRowCell>
+                    </TableRow>
+                }
+               
+            </TableBody>
+        </Table>
+    </CardBody>
+</Card>
+
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>Borç Ödeniyor...</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+           <Field>
+               Borç : @selectedDebt.Amount TL
+           </Field>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary"
+                        Clicked="() => Pay()">
+                    Öde
+                </Button>
+            </Column>
+    
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+    private List<DebtDto> DebtList { get; set; } = new List<DebtDto>();
+    private Modal modalRef;
+    private DebtDto selectedDebt = new DebtDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        DebtList = (await _debtService.GetDebt(Id));
+    }
+
+    private async Task OpenModel(Guid id)
+    {
+        selectedDebt = DebtList.FirstOrDefault(o => o.Id == id);
+        await modalRef.Show();
+    }
+
+    private async Task Pay()
+    {
+        try
+        {
+            await _debtService.Pay(selectedDebt.Id);
+            DebtList = (await _debtService.GetDebt(Id));
+            await modalRef.Close(CloseReason.None);
+            await Message.Success("Borç Ödendi");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+}

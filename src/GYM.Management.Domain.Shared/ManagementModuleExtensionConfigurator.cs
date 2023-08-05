@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Identity;
+using Volo.Abp.Localization;
 using Volo.Abp.ObjectExtending;
 using Volo.Abp.Threading;
 
@@ -44,13 +45,18 @@ public static class ManagementModuleExtensionConfigurator
     {
         identity.ConfigureUser(user =>
         {
-            user.AddOrUpdateProperty<UserType>("UserType");
+            user.AddOrUpdateProperty<UserType>("UserType",
+                prop =>
+                {
+                    prop.DisplayName= new FixedLocalizableString("Kullanıcı Tipi");
+                });
             user.AddOrUpdateProperty<Guid?>(
                 "TrainerId",
                 property =>
                 {
                     property.UI.Lookup.Url = "/api/trainers";
                     property.UI.Lookup.DisplayPropertyName = "name";
+                    property.DisplayName= new FixedLocalizableString("Antrenör seçimi");
                 }
             );
         });

@@ -1,0 +1,104 @@
+﻿@page "/trainergain/{Id:guid}/{Name}"
+@using GYM.Management.Debts;
+@using GYM.Management.Expenses;
+@inject IDebtService _debtService
+@inherits ManagementComponentBase
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+        <FieldLabel>Başlangıç Tarihi</FieldLabel>
+        <InputDate @bind-Value="expenseReport.StartDate" />
+         </Field>
+    </Column>
+
+     <Column ColumnSize="ColumnSize.Is6">
+         <Field>
+            <FieldLabel>Bitiş Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.EndDate" />
+         </Field>
+       
+    </Column>
+    <Field>
+        <Button Color="Color.Primary" Clicked="GetReports">Filtrele</Button>
+    </Field>
+</Row>
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is4">
+            <Card Background="Background.Primary" WhiteText>
+                <CardBody>
+                    <CardTitle Size="3">
+                       @Name - Kasaya Stoktuğu Toplam Para
+                    </CardTitle>
+                    <CardText>
+                        @totalGain.ToString("N2") TL
+                    </CardText>
+                </CardBody>
+                <CardFooter>
+                <Button Color="Color.Primary" Clicked="@(() => modalRef.Show())" Margin="Margin.Is2.FromTop">
+                        Detay Sayfasına Git <Icon Name="IconName.Book" />
+                    </Button>
+                </CardFooter>
+            </Card>
+        </Column>
+</Row>
+
+<Modal @ref="modalRef">
+    <ModalContent Size="ModalSize.Fullscreen">
+        <ModalHeader>
+            <ModalTitle> @Name </ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Table Bordered>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderCell>Eklenme Tarihi</TableHeaderCell>
+                        <TableHeaderCell>Kasa ya geçen tutar</TableHeaderCell>
+                        <TableHeaderCell>Antrenör Tutarı</TableHeaderCell>
+                        <TableHeaderCell>Açıklama</TableHeaderCell>
+
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    @foreach (var item in DebtList)
+                    {
+                            <TableRow>
+                                <TableRowCell>@item.CreationTime.ToLongDateString()</TableRowCell>
+                               <TableRowCell>@item.SafeAmount TL</TableRowCell>
+                                <TableRowCell>@(item.Amount - item.SafeAmount) TL</TableRowCell>
+                                <TableRowCell>@item.Description</TableRowCell>
+                            </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        </ModalBody>
+        <ModalFooter>
+
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+
+    private List<DebtDto> DebtList { get; set; } = new List<DebtDto>();
+    private decimal totalGain = 0;
+    private Modal modalRef;
+
+    ExpenseReportInputDto expenseReport = new ExpenseReportInputDto { StartDate = DateTime.Today, EndDate = DateTime.Today };
+
+    private async Task GetReports()
+    {
+        DebtList = await _debtService.TrainerReport(Id,expenseReport);
+        totalGain = DebtList.Sum(o => o.SafeAmount);
+        await Message.Success($"{expenseReport.StartDate.ToShortTimeString()} ile {expenseReport.EndDate.ToShortDateString()} arasındaki kazançlar getirildi");
+        //expenseSum = expenseDtos.Sum(o => o.Amount);
+        //salarySum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
+        //spendingSum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);
+    } 
+}

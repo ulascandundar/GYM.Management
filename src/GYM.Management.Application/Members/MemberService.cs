@@ -1,4 +1,5 @@
 ﻿using GYM.Management.AppointmentTransactions;
+using GYM.Management.Claims;
 using GYM.Management.Permissions;
 using GYM.Management.Trainers;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.ObjectMapping;
+using Volo.Abp.Users;
 
 namespace GYM.Management.Members
 {
@@ -41,6 +43,7 @@ namespace GYM.Management.Members
 
         public async Task<PagedResultDto<MemberDto>> GetListAsync(GetMemberListInput input)
         {
+            var type = CurrentUser.GetUserType();
             var query = await Repository.GetQueryableAsync();
             if (!input.Name.IsNullOrWhiteSpace())
             {
@@ -50,6 +53,11 @@ namespace GYM.Management.Members
             if (input.AnyDebt)
             {
                 query = query.Where(o => o.Debt > 0);
+            }
+            if (type=="Trainer")
+            {
+                var userId = Guid.Parse(CurrentUser.GetTrainerId());
+                query = query.Where(o=>o.TrainerId == userId); 
             }
             var totalCount = await AsyncExecuter.CountAsync(query);
             query = query.OrderBy(string.IsNullOrWhiteSpace(input.Sorting)

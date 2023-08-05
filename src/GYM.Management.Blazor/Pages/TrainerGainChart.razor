@@ -1,0 +1,57 @@
+﻿@page "/trainergainchart"
+@using GYM.Management.Debts;
+@using Blazorise.Charts;
+@using GYM.Management.Expenses;
+@using GYM.Management.Localization;
+@using Microsoft.Extensions.Localization;
+@inherits ManagementComponentBase
+@inject IStringLocalizer<ManagementResource> L
+@inject IDebtService _debtService;
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+            <FieldLabel>Başlangıç Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.StartDate" />
+        </Field>
+    </Column>
+
+    <Column ColumnSize="ColumnSize.Is6">
+        <Field>
+            <FieldLabel>Bitiş Tarihi</FieldLabel>
+            <InputDate @bind-Value="expenseReport.EndDate" />
+        </Field>
+
+    </Column>
+    <Field>
+        <Button Color="Color.Primary" Clicked="() => HandleRedraw()">Filtrele</Button>
+    </Field>
+</Row>
+
+<Chart @ref="barChart" Type="ChartType.Bar" TItem="double"/>
+
+
+@code {
+    Chart<double> barChart;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await HandleRedraw();
+        }
+    }
+
+    private async Task HandleRedraw()
+    {
+        await barChart.Clear();
+        var result = await _debtService.TrainerGainForChart(expenseReport);
+        await barChart.AddLabelsDatasetsAndUpdate(result.Select(o => o.TrainerName).ToList(), new BarChartDataset<double>(){Label="Antrenör Toplam Kazanç",
+                BorderWidth = 1, Data = result.Select(o=>(double)o.TotalSafeAmount).ToList(),BackgroundColor = backgroundColors,BorderColor=borderColors
+            });
+    }
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+
+	private List<DebtTrainerGroupDto> debtTrainerGroupDtos = new List<DebtTrainerGroupDto>();
+    DateInputDto expenseReport = new DateInputDto { StartDate = DateTime.Today.AddDays(-1), EndDate = DateTime.Today };
+}
