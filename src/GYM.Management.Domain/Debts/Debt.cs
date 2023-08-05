@@ -16,6 +16,7 @@ namespace GYM.Management.Debts
         public decimal Amount { get; set; }
         public Guid? TrainerId { get; set; }
         public bool IsPay { get; set; }
+        public decimal SafeAmount { get; set; }
         public virtual Member Member { get; set; }
         public virtual Trainer Trainer { get; set; }
     }

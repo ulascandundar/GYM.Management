@@ -66,7 +66,11 @@ public class ManagementPermissionDefinitionProvider : PermissionDefinitionProvid
         expenseTypePermissiom.AddChild(ManagementPermissions.ExpenseType.Edit, L("Permission:ExpenseType.Edit"));
         expenseTypePermissiom.AddChild(ManagementPermissions.ExpenseType.Delete, L("Permission:ExpenseType.Delete"));
 
+        var debtPermission = myGroup.AddPermission(ManagementPermissions.Debt.Default, L("Permission:Debt"));
+        debtPermission.AddChild(ManagementPermissions.Debt.Pay, L("Permission:Debt.Pay"));
 
+        var chartPermission = myGroup.AddPermission(ManagementPermissions.Chart.Default, L("Permission:Chart"));
+        chartPermission.AddChild(ManagementPermissions.Chart.TrainersGains, L("Permission:Chart.TrainersGains"));
     }
 
     private static LocalizableString L(string name)

@@ -1,5 +1,7 @@
 ﻿@page "/debt/{Id:guid}/{Name}"
+@attribute [Authorize(ManagementPermissions.Debt.Default)]
 @using GYM.Management.Debts;
+@using GYM.Management.Permissions;
 @inherits ManagementComponentBase
 @inject IDebtService _debtService
 <Card>

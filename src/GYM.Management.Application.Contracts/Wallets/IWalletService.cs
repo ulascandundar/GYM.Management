@@ -10,5 +10,6 @@ namespace GYM.Management.Wallets
     {
         Task CommitToWallet(WalletCommitDto walletCommitDto);
         Task<WalletDetailDto> GetDetail(Guid id, string trainerName);
+        Task CommitToWalletNotSafeEffect(WalletCommitDto walletCommitDto);
     }
 }

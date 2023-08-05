@@ -157,9 +157,9 @@ public class ManagementMenuContributor : IMenuContributor
             ).RequirePermissions(ManagementPermissions.Graphic.Default).AddItem(
                 new ApplicationMenuItem(
                     "gym.",
-                    "Gider Grafiği",
-                    url: "/expensechart"
-                    )
+                    "Antrenör Kazanç Grafiği",
+                    url: "/trainergainchart"
+                    ).RequirePermissions(ManagementPermissions.Chart.TrainersGains)
             ))
 );
 

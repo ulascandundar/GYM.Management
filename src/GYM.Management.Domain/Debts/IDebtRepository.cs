@@ -9,5 +9,6 @@ namespace GYM.Management.Debts
 {
     public interface IDebtRepository : IRepository<Debt>
     {
+        Task<List<DebtTrainerGroupDto>> GetTrainerGroup(DateInputDto dto);
     }
 }

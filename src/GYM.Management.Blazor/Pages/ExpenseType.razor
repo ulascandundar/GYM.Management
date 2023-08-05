@@ -28,14 +28,18 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+                  Responsive="true">
             <DataGridColumns>
                 <DataGridEntityActionsColumn TItem="ExpenseTypeDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
                         <EntityActions TItem="ExpenseTypeDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="ExpenseTypeDto"
+                        @if (!context.IsStatic)
+                        {
+                                <EntityAction TItem="ExpenseTypeDto"
                                           Text="Güncelle"
                                           Clicked="() => OpenEditModalAsync(context)" />
+                            }
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>

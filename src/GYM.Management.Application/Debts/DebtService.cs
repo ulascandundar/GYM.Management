@@ -10,6 +10,9 @@ using Volo.Abp.ObjectMapping;
 using GYM.Management.Wallets;
 using GYM.Management.MemberOrders;
 using GYM.Management.Safes;
+using GYM.Management.Expenses;
+using Microsoft.AspNetCore.Authorization;
+using GYM.Management.Permissions;
 
 namespace GYM.Management.Debts
 {
@@ -43,34 +46,50 @@ namespace GYM.Management.Debts
                 return listDto;
             }
         }
-
+        [Authorize(ManagementPermissions.Debt.Pay)]
         public async Task Pay(Guid debtId)
         {
-            decimal trainerAmount = 0;
-            var debt = await _debtRepository.GetAsync(o=>o.Id==debtId);
-            if (debt.IsPay)
+            using (_dataFilter.Disable<ISoftDelete>())
             {
-                throw new UserFriendlyException("Borç zaten ödenmiş.", "Borç zaten ödenmiş.");
-            }
-            debt.IsPay = true;
-            if (debt.TrainerId.HasValue)
-            {
-                trainerAmount = debt.Amount * (debt.Trainer.ProfitRate / 100);
-                await _walletService.CommitToWallet(new WalletCommitDto
+                decimal trainerAmount = 0;
+                var debt = await _debtRepository.GetAsync(o => o.Id == debtId);
+                if (debt.IsPay)
                 {
-                    Amount = trainerAmount,
-                    WalletId = debt.Trainer.Wallet.Id,
-                    Description = $"{debt.Member.Name} isimli üye nin ödemesi. {debt.Description}",
-                    IsPositive = true
-                });
+                    throw new UserFriendlyException("Borç zaten ödenmiş.", "Borç zaten ödenmiş.");
+                }
+                debt.IsPay = true;
+                if (debt.TrainerId.HasValue)
+                {
+                    trainerAmount = debt.Amount * (debt.Trainer.ProfitRate / 100);
+                    await _walletService.CommitToWalletNotSafeEffect(new WalletCommitDto
+                    {
+                        Amount = trainerAmount,
+                        WalletId = debt.Trainer.Wallet.Id,
+                        Description = $"{debt.Member.Name} isimli üye nin ödemesi. {debt.Description}",
+                        IsPositive = true
+                    });
+                }
+                debt.SafeAmount = debt.Amount - trainerAmount;
+                await _safeRepository.PositiveCommit(debt.Amount - trainerAmount, $"{debt.Member.Name} isimli üye nin ödemesi.");
             }
-            await _safeRepository.PositiveCommit(debt.Amount - trainerAmount, $"{debt.Member.Name} isimli üye nin ödemesi.");
         }
 
         public async Task Create(DebtDto dto)
         {
             await _debtRepository.InsertAsync(new Debt { Amount = dto.Amount,TrainerId= dto.TrainerId, MemberId = dto.MemberId,Description=dto.Description,
             IsPay=false});
+        }
+
+        public async Task<List<DebtDto>> TrainerReport(Guid id, ExpenseReportInputDto dto)
+        {
+            var result = await _debtRepository.GetListAsync(o => o.TrainerId == id && o.IsPay && o.CreationTime.Date >= dto.StartDate.Date && o.CreationTime.Date <= dto.EndDate.Date);
+            var resultDto = ObjectMapper.Map<List<Debt>, List<DebtDto>>(result);
+            return resultDto;
+        }
+
+        public async Task<List<DebtTrainerGroupDto>> TrainerGainForChart(DateInputDto dto)
+        {
+            return await _debtRepository.GetTrainerGroup(dto);
         }
     }
 }

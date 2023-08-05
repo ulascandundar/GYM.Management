@@ -26,7 +26,7 @@ namespace GYM.Management.Claims
                 var userService = context.ServiceProvider.GetRequiredService<IIdentityUserRepository>(); //Your custom service
                 var user = await userService.GetAsync(userId.Value);
                 var result = user.GetProperty<UserType>("UserType");
-                var trainerId = user.GetProperty<UserType>("TrainerId");
+                var trainerId = user.GetProperty<Guid>("TrainerId");
                 if (result != null)
                 {
                     identity.AddClaim(new Claim("UserType", result.ToString()));

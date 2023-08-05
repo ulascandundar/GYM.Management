@@ -93,4 +93,16 @@ public static class ManagementPermissions
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class Debt
+    {
+        public const string Default = GroupName + ".Debt";
+        public const string Pay = Default + ".Pay";
+    }
+
+    public static class Chart
+    {
+        public const string Default = GroupName + ".Chart";
+        public const string TrainersGains = Default + ".TrainersGains";
+    }
 }
