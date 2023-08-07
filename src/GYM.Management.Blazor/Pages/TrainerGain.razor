@@ -96,7 +96,7 @@
     {
         DebtList = await _debtService.TrainerReport(Id,expenseReport);
         totalGain = DebtList.Sum(o => o.SafeAmount);
-        await Message.Success($"{expenseReport.StartDate.ToShortTimeString()} ile {expenseReport.EndDate.ToShortDateString()} arasındaki kazançlar getirildi");
+        await Message.Success($"{expenseReport.StartDate.ToShortDateString()} ile {expenseReport.EndDate.ToShortDateString()} arasındaki kazançlar getirildi");
         //expenseSum = expenseDtos.Sum(o => o.Amount);
         //salarySum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Salary).Sum(o => o.Amount);
         //spendingSum = expenseDtos.Where(o => o.ExpenseType == ExpenseType.Spending).Sum(o => o.Amount);

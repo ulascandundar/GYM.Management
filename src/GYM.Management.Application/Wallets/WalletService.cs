@@ -1,4 +1,5 @@
-﻿using GYM.Management.Expenses;
+﻿using GYM.Management.Claims;
+using GYM.Management.Expenses;
 using GYM.Management.ExpenseTypes;
 using GYM.Management.Permissions;
 using GYM.Management.Safes;
@@ -15,7 +16,6 @@ using Volo.Abp.Application.Services;
 
 namespace GYM.Management.Wallets
 {
-    [Authorize(ManagementPermissions.Wallet.Default)]
     public class WalletService : ApplicationService, IWalletService
     {
         private readonly IWalletRepository _walletRepository;
@@ -96,6 +96,30 @@ namespace GYM.Management.Wallets
             return new WalletDetailDto { TrainerName = wallet.Trainer.Name, Balance = wallet.Balance,Trainsactions = transactions,WalletId = wallet.Id };
         }
 
-
+        public async Task<WalletDetailDto> GetDetailForUser()
+        {
+            if (CurrentUser.GetUserType()!="Trainer")
+            {
+                throw new UserFriendlyException("Bu alan sadece antrenörler içindir", "Bu alan sadece antrenörler içindir");
+            }
+            var trainerId = Guid.Parse(CurrentUser.GetTrainerId());
+            var wallet = await _walletRepository.GetByTrainerId(trainerId);
+            if (wallet == null)
+            {
+                var newWallet = new Wallet { TrainerId = trainerId };
+                var addedWallet = await _walletRepository.InsertAsync(newWallet);
+                return new WalletDetailDto { Balance = newWallet.Balance, TrainerName = addedWallet.Trainer.Name };
+            }
+            var transactions = wallet.WalletTransactions.OrderByDescending(o => o.CreationTime).Select(o => new WalletTransDto
+            {
+                Amount = o.Amount,
+                Description = o.Description,
+                IsPositive = o.IsPositive,
+                WalletId = o.WalletId,
+                Id = o.Id,
+                CreationTime = o.CreationTime
+            }).ToList();
+            return new WalletDetailDto { TrainerName = wallet.Trainer.Name, Balance = wallet.Balance, Trainsactions = transactions, WalletId = wallet.Id };
+        }
     }
 }

@@ -101,11 +101,18 @@ namespace GYM.Management.Members
                 throw new UserFriendlyException("Üye nin antrenörü seçili değildir", "Üye nin antrenörü seçili değildir");
             }
             await _appointmentTransactionRepository.InsertAsync(new AppointmentTransaction { Description=appointmentTransactionCreateDto.Description,
-            MemberId = appointmentTransactionCreateDto.MemberId,OldStock =member.AppointmentStock,TrainerId = (Guid)member.TrainerId});
+            MemberId = appointmentTransactionCreateDto.MemberId,OldStock =member.AppointmentStock,TrainerId = (Guid)member.TrainerId,Date = appointmentTransactionCreateDto.Date});
         }
 
         public async Task<List<MemberDto>> GetAllMember()
         {
+            var type = CurrentUser.GetUserType();
+            if (type=="Trainer")
+            {
+                var trainerId = Guid.Parse(CurrentUser.GetTrainerId());
+                var trainerResult = await Repository.GetListAsync(o=>o.TrainerId == trainerId);
+                return ObjectMapper.Map<List<Member>, List<MemberDto>>(trainerResult);
+            }
             var result = await Repository.GetListAsync();
             return ObjectMapper.Map<List<Member>, List<MemberDto>>(result);
         }

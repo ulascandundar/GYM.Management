@@ -52,7 +52,7 @@ namespace GYM.Management.AppointmentTransactions
             }
             if (userType == "Trainer")
             {
-                query = query.Where(o => o.TrainerId == _currentUser.Id);
+                query = query.Where(o => o.TrainerId == Guid.Parse(_currentUser.GetTrainerId()));
             }
             var totalCount = await AsyncExecuter.CountAsync(query);
             query = query.OrderBy(string.IsNullOrWhiteSpace(input.Sorting)
@@ -92,6 +92,36 @@ namespace GYM.Management.AppointmentTransactions
             }
             transaction.Member.AppointmentStock++;
             await Repository.DeleteAsync(transaction);
+        }
+
+        [Authorize]
+        public async Task<List<AppointmentTransactionDto>> GetListAsyncForUser()
+        {
+            var userType = _currentUser.GetUserType();
+            var query = await Repository.GetQueryableAsync();
+            query = query.Where(o => o.IsDeleted == false && o.Date.Date >= DateTime.UtcNow.Date);
+            //if (!input.Description.IsNullOrWhiteSpace())
+            //{
+            //    input.Description = input.Description.ToLower();
+            //    query = query.Where(o => o.Description.ToLower().Contains(input.Description));
+            //}
+            if (userType == "Trainer")
+            {
+                query = query.Where(o => o.TrainerId == Guid.Parse(_currentUser.GetTrainerId()));
+            }
+            query = query.OrderBy(o => o.Date);
+            using (_dataFilter.Disable<ISoftDelete>())
+            {
+                var result = await AsyncExecuter.ToListAsync(query);
+                var listDto = ObjectMapper.Map<List<AppointmentTransaction>, List<AppointmentTransactionDto>>(result);
+                foreach (var item in listDto)
+                {
+                    item.MemberName = item.TrainerId == null ? null : result.Where(o => o.Id == item.Id)
+                    .Select(o => o.Member.Name).FirstOrDefault();
+                }
+                return listDto;
+            }
+
         }
     }
 }
