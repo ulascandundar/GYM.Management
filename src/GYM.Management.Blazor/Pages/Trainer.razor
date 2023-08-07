@@ -32,9 +32,9 @@
                 </Field>
             </Column>
             <Column ColumnSize="ColumnSize.Is6">
-                <Field>
+               @* <Field>
                     <Check TValue="bool" @bind-Checked="@Filter.IsPay">Maaşı Ödenmemişleri Getir</Check>
-                </Field>
+                </Field>*@
                 <Field>
                     <Button Color="Color.Primary"
                             Clicked="() => Refresh()">
@@ -67,12 +67,12 @@
                             <EntityAction TItem="TrainerDto"
                                           Text="Kazanımlarına Git"
                                           Clicked="() => NavigateToGain(context.Id,context.Name)" />
-                                          @if (IsPaymentDue(context.lastSalaryDate))
+                                         @* @if (IsPaymentDue(context.lastSalaryDate))
                             {
                                 <EntityAction TItem="TrainerDto"
                                           Text="Maaş Öde"
                                           Clicked="() => Pay(context.Id)" />
-                            }
+                            }*@
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
@@ -82,16 +82,16 @@
                 <DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.ProfitRate)"
                                 Caption="Kar Oranı"></DataGridColumn>
-                <DataGridColumn TItem="TrainerDto"
+                @*<DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.Salary)"
-                                Caption="Maaş"></DataGridColumn>
-                <DataGridColumn TItem="TrainerDto"
+                                Caption="Maaş"></DataGridColumn>*@
+                @*<DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.lastSalaryDate)"
                                 Caption="Son Ödenen Maaş">
                     <DisplayTemplate>
                         @context.lastSalaryDate.ToLongDateString()
                     </DisplayTemplate>
-                </DataGridColumn>
+                </DataGridColumn>*@
                 <DataGridColumn TItem="TrainerDto"
                                 Field="@nameof(TrainerDto.CreationTime)"
                                 Caption="Eklenme Tarihi">
@@ -143,10 +143,10 @@
                             </TextEdit>
                         </Field>
                     </Validation>
-                    <Field>
+                   @* <Field>
                         <FieldLabel>Maaş</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="NewEntity.Salary" />
-                    </Field>
+                    </Field>*@
                     <Validation>
                     <Field>
                         <FieldLabel>Kar Oranı</FieldLabel>
@@ -195,10 +195,10 @@
                         <FieldLabel>Doğum Tarihi</FieldLabel>
                         <DatePicker TValue="DateTime" @bind-Date="EditingEntity.BirdthDate" />
                     </Field>
-                    <Field>
+                    @*<Field>
                         <FieldLabel>Maaş</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="EditingEntity.Salary" />
-                    </Field>
+                    </Field>*@
                     <Field>
                         <FieldLabel>Kar Oranı</FieldLabel>
                         <NumericEdit TValue="decimal" @bind-Value="EditingEntity.ProfitRate" />

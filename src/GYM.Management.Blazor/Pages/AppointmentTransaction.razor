@@ -1,17 +1,20 @@
 ﻿@page "/AppointmentTransaction"
 @attribute [Authorize(ManagementPermissions.Member.AppointmentTransaction)]
 @using GYM.Management.AppointmentTransactions;
+@using GYM.Management.Claims;
 @using GYM.Management.Localization;
 @using GYM.Management.Members;
 @using GYM.Management.Permissions;
 @using GYM.Management.Trainers;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
+@using Volo.Abp.Users;
 @inject IStringLocalizer<ManagementResource> L
 @inherits AbpCrudPageBase<IAppointmentTransactionService, AppointmentTransactionDto, Guid, GetAppointmentTransactionListInput, AppointmentTransactionCreateDto>
 @inject IAppointmentTransactionService _appointmentTransactionService
 @inject IMemberService _memberService
 @inject ITrainerService _trainerService
+    @inject ICurrentUser CurrentUser
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
@@ -22,19 +25,22 @@
     </CardHeader>
     <CardBody>
         <div id="UserFilterSection" class="row mt-3">
-            <Column ColumnSize="ColumnSize.Is6">
-                <Field>
-                    <FieldLabel>Antrenör</FieldLabel>
-                    <Select TValue="Guid?" @bind-SelectedValue="@Filter.TrainerId">
-                        <SelectItem></SelectItem>
-                        @foreach (var item in TrainerList)
-                        {
-                            <SelectItem Value="@item.Id">@item.Name</SelectItem>
-                        }
-                        
-                    </Select>
-                </Field>
-            </Column>
+            @if (CurrentUser.GetUserType() != "Trainer")
+            {
+                <Column ColumnSize="ColumnSize.Is6">
+                    <Field>
+                        <FieldLabel>Antrenör</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@Filter.TrainerId">
+                            <SelectItem></SelectItem>
+                            @foreach (var item in TrainerList)
+                            {
+                                <SelectItem Value="@item.Id">@item.Name</SelectItem>
+                            }
+
+                        </Select>
+                    </Field>
+                </Column>
+            }
             <Column ColumnSize="ColumnSize.Is6">
                 <Field>
                     <FieldLabel>Müşteri</FieldLabel>
@@ -68,7 +74,8 @@
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
-                  PageSize="PageSize">
+                  PageSize="PageSize"
+                  Responsive = "true">
             <DataGridColumns>
                 <DataGridEntityActionsColumn TItem="AppointmentTransactionDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
@@ -83,10 +90,10 @@
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
-                <DataGridColumn TItem="AppointmentTransactionDto"
+               @* <DataGridColumn TItem="AppointmentTransactionDto"
                                 Field="@nameof(AppointmentTransactionDto.Description)"
                                 Caption="Açıklama">
-                </DataGridColumn>
+                </DataGridColumn>*@
                 <DataGridColumn TItem="AppointmentTransactionDto"
                                 Field="@nameof(AppointmentTransactionDto.TrainerName)"
                                 Caption="Antrenör"></DataGridColumn>
@@ -100,7 +107,7 @@
                                 Field="@nameof(AppointmentTransactionDto.Date)"
                                 Caption="Randevu Tarihi">
                     <DisplayTemplate>
-                        @context.Date.ToLongDateString()
+                        @context.Date.ToString("dd/MM/yyyy HH:mm:ss")
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn TItem="AppointmentTransactionDto"

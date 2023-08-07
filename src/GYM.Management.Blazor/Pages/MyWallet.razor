@@ -1,0 +1,85 @@
+﻿@page "/mywallet"
+@attribute [Authorize]
+@using GYM.Management.Wallets;
+@inject IWalletService _walletService
+@inherits ManagementComponentBase
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is6">
+        <Row>
+            <Column ColumnSize="ColumnSize.Is9">
+                <div class="credit-card-wrap">
+                    <div class="mk-icon-world-map"></div>
+                    <div class="credit-card-inner">
+                        <header class="header">
+                            <div class="credit-logo">
+                                <span class="text">KOLAYLA</span>
+                                @*<img src="/images/mastercard.png" />*@
+                            </div>
+                        </header>
+                        <div class="mk-icon-sim"></div>
+                        <div class="credit-font credit-card-number" data-text="BAKİYE : @walletDetailDto.Balance TL">0000 0000 0000 0000</div>
+                        <footer class="footer">
+                            <div class="clearfix">
+                                <div class="pull-left">
+                                    @* <div class="credit-card-date"><span class="title">BAKİYE</span><span class="credit-font">@walletDetailDto.Balance TL</span></div>*@
+                                    <div class="credit-font credit-author">@walletDetailDto.TrainerName</div>
+                                </div>
+                                <div class="pull-right"><div class="mk-icon-visa"></div></div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </Column>
+        </Row>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is6">
+
+        <Text>İŞLEM GEÇMİŞİ</Text>
+        @foreach (var item in walletDetailDto.Trainsactions)
+        {
+            @if (item.IsPositive)
+            {
+                <Row>
+                    <Card TextColor="TextColor.White" Background="Background.Dark">
+                        <CardHeader>
+                            @item.CreationTime.ToString("dd/MM/yyyy HH:mm:ss")
+                        </CardHeader>
+                        <CardBody>
+                            <Text TextColor="TextColor.Success">+ @item.Amount TL</Text>
+                        </CardBody>
+                        <CardFooter>
+                            @item.Description
+                        </CardFooter>
+                    </Card>
+                </Row>
+            }
+            else
+            {
+                <Row>
+                    <Card TextColor="TextColor.White" Background="Background.Dark">
+                        <CardHeader>
+                            @item.CreationTime.ToString("dd/mm/yyyy HH:mm:ss")
+                        </CardHeader>
+                        <CardBody>
+                            <Text TextColor="TextColor.Danger">- @item.Amount TL</Text>
+                        </CardBody>
+                        <CardFooter>
+                            @item.Description
+                        </CardFooter>
+                    </Card>
+                </Row>
+            }
+
+        }
+    </Column>
+
+</Row>
+
+@code {
+    private WalletDetailDto walletDetailDto = new WalletDetailDto();
+    protected override async Task OnInitializedAsync()
+    {
+        walletDetailDto = await _walletService.GetDetailForUser();
+    }
+}

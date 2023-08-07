@@ -13,5 +13,6 @@ namespace GYM.Management.AppointmentTransactions
 
         Task UpdateDescription(AppointmentTransactionCreateDto dto);
         Task Cancel(Guid id);
+        Task<List<AppointmentTransactionDto>> GetListAsyncForUser();
     }
 }
